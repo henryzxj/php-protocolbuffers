@@ -366,7 +366,7 @@ static void php_protocolbuffers_encode_element_string(PB_ENCODE_CALLBACK_PARAMET
 
 		php_protocolbuffers_serializer_write_chararray(ser, (unsigned char*)Z_STRVAL_P(tmp), Z_STRLEN_P(tmp));
 		if (free) {
-			zval_ptr_dtor(&t);
+			zval_ptr_dtor(t);
 		}
 	}
 }

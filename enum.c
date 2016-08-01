@@ -39,7 +39,7 @@ PHP_METHOD(protocolbuffers_enum, isValid)
 
 		if (!instanceof_function_ex(Z_OBJCE_P(result), php_protocol_buffers_enum_descriptor_class_entry, 0 TSRMLS_CC)) {
 			zend_throw_exception_ex(spl_ce_RuntimeException, 0 TSRMLS_CC, "ProtocolBuffersEnum::getEnumDescriptor returns unexpected value.");
-			zval_ptr_dtor(&result);
+			zval_ptr_dtor(result);
 			return;
 		}
 
@@ -52,7 +52,7 @@ PHP_METHOD(protocolbuffers_enum, isValid)
 			}
 			zend_hash_move_forward_ex(Z_ARRVAL_P(values), &pos);
 		}
-		zval_ptr_dtor(&result);
+		zval_ptr_dtor(result);
 		RETVAL_FALSE;
 	} else {
 			zend_throw_exception_ex(spl_ce_RuntimeException, 0 TSRMLS_CC, "cannot call ProtocolBuffersEnum::getEnumDescriptor.");
@@ -84,7 +84,7 @@ PHP_METHOD(protocolbuffers_enum, getName)
 
 		if (!instanceof_function_ex(Z_OBJCE_P(result), php_protocol_buffers_enum_descriptor_class_entry, 0 TSRMLS_CC)) {
 			zend_throw_exception_ex(spl_ce_RuntimeException, 0 TSRMLS_CC, "ProtocolBuffersEnum::getEnumDescriptor returns unexpected value.");
-			zval_ptr_dtor(&result);
+			zval_ptr_dtor(result);
 			return;
 		}
 
@@ -103,7 +103,7 @@ PHP_METHOD(protocolbuffers_enum, getName)
 			}
 			zend_hash_move_forward_ex(Z_ARRVAL_P(values), &pos);
 		}
-		zval_ptr_dtor(&result);
+		zval_ptr_dtor(result);
 		RETVAL_FALSE;
 	} else {
 			zend_throw_exception_ex(spl_ce_RuntimeException, 0 TSRMLS_CC, "cannot call ProtocolBuffersEnum::getEnumDescriptor.");

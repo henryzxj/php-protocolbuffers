@@ -41,4 +41,5 @@ void php_protocolbuffers_unknown_field_clear(INTERNAL_FUNCTION_PARAMETERS, zval 
 
 void php_protocolbuffers_unknown_field_set_properties_init(zval *object TSRMLS_DC);
 
+static zend_object_handlers php_protocolbuffers_unknown_field_set_object_handlers;
 #endif

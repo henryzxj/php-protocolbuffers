@@ -100,17 +100,17 @@ int php_protocolbuffers_get_scheme_container_ex(const char *klass, size_t klass_
 
 	if (zend_hash_find(PBG(messages), (char*)klass, klass_len, (void **)&cn) != SUCCESS) {
 		zval *ret = NULL;
-		zend_class_entry **ce = NULL;
-
-		if (zend_lookup_class((char*)klass, klass_len, &ce TSRMLS_CC) == FAILURE) {
+		zend_class_entry *ce = NULL;
+		zend_string *klass_name = zend_string_init((char*)klass, klass_len,0);
+		if ((ce=zend_lookup_class(klass_name)) == NULL) {
 			php_error_docref(NULL TSRMLS_CC, E_ERROR, "php_protocolbuffers_get_scheme_container failed. %s does find", klass);
 			return 1;
 		}
 
-		if (zend_call_method(NULL, *ce, NULL, ZEND_STRS("getdescriptor")-1, &ret, 0, NULL, NULL  TSRMLS_CC)) {
+		if (zend_call_method(NULL, ce, NULL, ZEND_STRS("getdescriptor")-1, &ret, 0, NULL, NULL  TSRMLS_CC)) {
 			if (Z_TYPE_P(ret) == IS_ARRAY) {
 				/* TODO(chobie): move this block after release. */
-				zval_ptr_dtor(&ret);
+				zval_ptr_dtor(ret);
 				php_error_docref(NULL TSRMLS_CC, E_ERROR, "php_protocolbuffers_get_scheme_container no longer support array based descriptor");
 				return 1;
 			} else if (Z_TYPE_P(ret) == IS_OBJECT) {
@@ -125,17 +125,17 @@ int php_protocolbuffers_get_scheme_container_ex(const char *klass, size_t klass_
 				} else {
 					zend_throw_exception_ex(php_protocol_buffers_invalid_protocolbuffers_exception_class_entry, 0 TSRMLS_CC, "getDescriptor returns unexpected class");
 					if (ret != NULL) {
-						zval_ptr_dtor(&ret);
+						zval_ptr_dtor(ret);
 					}
 					return 1;
 				}
 
-				zval_ptr_dtor(&ret);
+				zval_ptr_dtor(ret);
 				*result = desc->container;
 				return 0;
 			} else {
 				if (ret != NULL) {
-					zval_ptr_dtor(&ret);
+					zval_ptr_dtor(ret);
 				}
 				zend_throw_exception_ex(php_protocol_buffers_invalid_protocolbuffers_exception_class_entry, 0 TSRMLS_CC, "getDescriptor returns unexpected class");
 				return 1;
@@ -498,7 +498,8 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 				}
 
 				if (s->repeated) {
-					if (!zend_hash_quick_exists(hresult, name, name_length, name_hash)) {
+//					if (!zend_hash_quick_exists(hresult, name, name_length, name_hash)) {
+					if (!zend_hash_str_exists(hresult, name, name_length)) {
 						zval *arr = NULL;
 
 						MAKE_STD_ZVAL(arr);
@@ -508,7 +509,7 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 						zend_hash_next_index_insert(Z_ARRVAL_P(arr), (void *)&z_obj, sizeof(z_obj), NULL);
 						Z_ADDREF_P(arr);
 						zend_hash_update(hresult, name, name_length, (void **)&arr, sizeof(arr), NULL);
-						zval_ptr_dtor(&arr);
+						zval_ptr_dtor(arr);
 					} else {
 						zval **arr2 = NULL;
 
@@ -518,11 +519,12 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 						}
 					}
 				} else {
-					zend_hash_quick_update(hresult, name, name_length, name_hash, (void **)&z_obj, sizeof(zval *), NULL);
+//					zend_hash_quick_update(hresult, name, name_length, name_hash, (void **)&z_obj, sizeof(zval *), NULL);
+					zend_hash_str_update(hresult,name,name_len,z_obj);
 					Z_ADDREF_P(z_obj);
 				}
 
-				zval_ptr_dtor(&z_obj);
+				zval_ptr_dtor(z_obj);
 			} else if (s->packed) {
 				const char *packed_data_end, *last_data_offset;
 
@@ -751,7 +753,7 @@ int php_protocolbuffers_jsonserialize(INTERNAL_FUNCTION_PARAMETERS, int throws_e
 	array_init(tmp);
 
 	if (php_protocolbuffers_encode_jsonserialize(klass, container, throws_exception, &tmp TSRMLS_CC) != 0) {
-		zval_ptr_dtor(&tmp);
+		zval_ptr_dtor(tmp);
 		return 1;
 	}
 
@@ -797,7 +799,7 @@ int php_protocolbuffers_decode(INTERNAL_FUNCTION_PARAMETERS, const char *data, i
 	php_protocolbuffers_scheme_container *container;
 	const char *data_end, *res;
 	int err = 0;
-	zend_class_entry **ce = NULL;
+	zend_class_entry *ce = NULL;
 
 	if (data_len < 1) {
 		zend_throw_exception_ex(php_protocol_buffers_invalid_protocolbuffers_exception_class_entry, 0 TSRMLS_CC, "passed variable seems null");
@@ -818,10 +820,12 @@ int php_protocolbuffers_decode(INTERNAL_FUNCTION_PARAMETERS, const char *data, i
 
 	if (PBG(classes)) {
 		/* Memo: fast lookup */
-		if (zend_hash_find(PBG(classes), (char*)klass, klass_len, (void **)&ce) == FAILURE) {
-			zend_lookup_class((char*)klass, klass_len, &ce TSRMLS_CC);
+//		if (zend_hash_find(PBG(classes), (char*)klass, klass_len, (void **)&ce) == FAILURE) {
+		zend_string *klass_name = zend_string_init((char*)klass, klass_len,0);
+		if ((ce=zend_hash_find(PBG(classes), klass_name)) == NULL) {
+			ce = zend_lookup_class(klass_name);
 			if (ce != NULL) {
-				zend_hash_update(PBG(classes), (char*)klass, klass_len, (void **)ce, sizeof(ce), NULL);
+				zend_hash_update(PBG(classes), klass_name, ce);
 			} else {
 				php_error_docref(NULL TSRMLS_CC, E_ERROR, "class lookup failed. %s does exist", klass);
 				return 1;
@@ -829,9 +833,9 @@ int php_protocolbuffers_decode(INTERNAL_FUNCTION_PARAMETERS, const char *data, i
 		}
 	}
 
-	MAKE_STD_ZVAL(obj);
-	object_init_ex(obj, *ce);
-	php_protocolbuffers_properties_init(obj, *ce TSRMLS_CC);
+	//MAKE_STD_ZVAL(obj);
+	object_init_ex(obj, ce);
+	php_protocolbuffers_properties_init(obj, ce TSRMLS_CC);
 
 	/* add unknown fields */
 	if (container->process_unknown_fields > 0) {
@@ -860,7 +864,7 @@ int php_protocolbuffers_decode(INTERNAL_FUNCTION_PARAMETERS, const char *data, i
 	res = php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAM_PASSTHRU, data, data_end, container, PBG(native_scalars), &obj);
 	if (res == NULL) {
 		if (obj != NULL) {
-			zval_ptr_dtor(&obj);
+			zval_ptr_dtor(obj);
 		}
 		zend_throw_exception_ex(php_protocol_buffers_invalid_protocolbuffers_exception_class_entry, 0 TSRMLS_CC, "passed variable contains malformed byte sequence. or it contains unsupported tag");
 		return 0;
@@ -888,7 +892,7 @@ void php_protocolbuffers_execute_wakeup(zval *obj, php_protocolbuffers_scheme_co
 	}
 
 	if (retval_ptr) {
-		zval_ptr_dtor(&retval_ptr);
+		zval_ptr_dtor(retval_ptr);
 	}
 }
 
@@ -907,7 +911,7 @@ void php_protocolbuffers_execute_sleep(zval *obj, php_protocolbuffers_scheme_con
 		if (retval_ptr) {
 			if (Z_TYPE_P(retval_ptr) != IS_ARRAY) {
 				php_error_docref(NULL TSRMLS_CC, E_ERROR, "php_protocolbuffers_execute_sleep failed. __sleep method have to return an array");
-				zval_ptr_dtor(&retval_ptr);
+				zval_ptr_dtor(retval_ptr);
 				retval_ptr = NULL;
 			}
 		} else {
@@ -942,7 +946,7 @@ void php_protocolbuffers_execute_sleep(zval *obj, php_protocolbuffers_scheme_con
 			zend_hash_move_forward_ex(Z_ARRVAL_P(retval_ptr), &pos);
 		}
 
-		zval_ptr_dtor(&retval_ptr);
+		zval_ptr_dtor(retval_ptr);
 	}
 }
 

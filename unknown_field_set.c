@@ -34,19 +34,17 @@
 
 static void php_protocolbuffers_unknown_field_set_free_storage(php_protocolbuffers_unknown_field_set *object TSRMLS_DC)
 {
-	zend_object_std_dtor(&object->zo TSRMLS_CC);
-	efree(object);
+    php_protocolbuffers_unknown_field_set *unknown_field_set;
+    unknown_field_set = (php_protocolbuffers_unknown_field_set*)((char *) object - XtOffsetOf(php_protocolbuffers_unknown_field_set, zo))；
+    zend_object_std_dtor(&unknown_field_set->zo TSRMLS_CC);
 }
 
-zend_object_value php_protocol_buffers_unknown_field_set_new(zend_class_entry *ce TSRMLS_DC)
+zend_object *php_protocol_buffers_unknown_field_set_new(zend_class_entry *ce TSRMLS_DC)
 {
-	zend_object_value retval;
 	PHP_PROTOCOLBUFFERS_STD_CREATE_OBJECT(php_protocolbuffers_unknown_field_set);
-
-	object->max    = 0;
-	object->offset = 0;
-
-	return retval;
+	intern->max    = 0;
+	intern->offset = 0;
+	return &intern->zo;
 }
 
 
@@ -207,7 +205,7 @@ PHP_METHOD(protocolbuffers_unknown_field_set, addField)
 */
 PHP_METHOD(protocolbuffers_unknown_field_set, current)
 {
-	zval *fields = NULL, **d = NULL, *instance = getThis();
+	zval *fields = NULL, *d = NULL, *instance = getThis();
 	php_protocolbuffers_unknown_field_set *unknown_field_set;
 	int num = 0;
 
@@ -217,8 +215,8 @@ PHP_METHOD(protocolbuffers_unknown_field_set, current)
 		num = zend_hash_num_elements(Z_ARRVAL_P(fields));
 	}
 
-	if (zend_hash_index_find(Z_ARRVAL_P(fields), unknown_field_set->offset, (void **)&d) == SUCCESS) {
-		RETURN_ZVAL(*d, 1, 0);
+	if ((d=zend_hash_index_find(Z_ARRVAL_P(fields), unknown_field_set->offset)) != NULL) {
+		RETURN_ZVAL(d, 1, 0);
 	}
 }
 /* }}} */
