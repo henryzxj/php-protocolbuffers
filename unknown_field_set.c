@@ -35,8 +35,8 @@
 static void php_protocolbuffers_unknown_field_set_free_storage(php_protocolbuffers_unknown_field_set *object TSRMLS_DC)
 {
     php_protocolbuffers_unknown_field_set *unknown_field_set;
-    unknown_field_set = (php_protocolbuffers_unknown_field_set*)((char *) object - XtOffsetOf(php_protocolbuffers_unknown_field_set, zo))；
-    zend_object_std_dtor(&unknown_field_set->zo TSRMLS_CC);
+    unknown_field_set = (php_protocolbuffers_unknown_field_set*)((char *) object - XtOffsetOf(php_protocolbuffers_unknown_field_set, zo));
+    zend_object_std_dtor(&unknown_field_set->zo);
 }
 
 zend_object *php_protocol_buffers_unknown_field_set_new(zend_class_entry *ce TSRMLS_DC)
@@ -56,7 +56,7 @@ void php_protocolbuffers_unknown_field_set_properties_init(zval *object TSRMLS_D
 	ALLOC_HASHTABLE(properties);
 	zend_hash_init(properties, 0, NULL, ZVAL_PTR_DTOR, 0);
 
-	MAKE_STD_ZVAL(fields);
+//	MAKE_STD_ZVAL(fields);
 	array_init(fields);
 	zend_string *fields_key = zend_string_init("fields", sizeof("fields"),0);
 	zend_hash_update(properties, fields_key, fields);
@@ -69,7 +69,7 @@ void php_protocolbuffers_unknown_field_clear(INTERNAL_FUNCTION_PARAMETERS, zval 
 	char *name = {0};
 	int name_len = 0;
 
-	MAKE_STD_ZVAL(fields);
+//	MAKE_STD_ZVAL(fields);
 	array_init(fields);
 
 	zend_string *name_key = zend_mangle_property_name((char*)"*", 1, (char*)ZEND_STRS("fields"), 0);

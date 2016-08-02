@@ -62,11 +62,11 @@ static void php_protocolbuffers_message_options_set_value(INTERNAL_FUNCTION_PARA
 				convert_to_boolean(value);
 			}
 
-			ZVAL_BOOL(*target, Z_BVAL_P(value));
+			ZVAL_BOOL(target, Z_BVAL_P(value));
 		} else if (type == IS_STRING) {
 			zval *tmp;
 
-			MAKE_STD_ZVAL(tmp);
+//			MAKE_STD_ZVAL(tmp);
 			ZVAL_STRING(tmp, Z_STRVAL_P(value));
 			zend_hash_update(Z_OBJPROP_P(instance), name_key, tmp);
 		}
@@ -77,7 +77,7 @@ static void php_protocolbuffers_message_options_set_value(INTERNAL_FUNCTION_PARA
 */
 PHP_METHOD(protocolbuffers_php_message_options, setUseWakeupAndSleep)
 {
-	php_protocolbuffers_message_options_set_value(INTERNAL_FUNCTION_PARAM_PASSTHRU, ZEND_STRS("use_wakeup_and_sleep"), IS_BOOL);
+	php_protocolbuffers_message_options_set_value(INTERNAL_FUNCTION_PARAM_PASSTHRU, ZEND_STRS("use_wakeup_and_sleep"), IS_TRUE);
 }
 /* }}} */
 
@@ -85,7 +85,7 @@ PHP_METHOD(protocolbuffers_php_message_options, setUseWakeupAndSleep)
 */
 PHP_METHOD(protocolbuffers_php_message_options, setUseSingleProperty)
 {
-	php_protocolbuffers_message_options_set_value(INTERNAL_FUNCTION_PARAM_PASSTHRU, ZEND_STRS("use_single_property"), IS_BOOL);
+	php_protocolbuffers_message_options_set_value(INTERNAL_FUNCTION_PARAM_PASSTHRU, ZEND_STRS("use_single_property"), IS_TRUE);
 }
 /* }}} */
 
@@ -101,7 +101,7 @@ PHP_METHOD(protocolbuffers_php_message_options, setSinglePropertyName)
 */
 PHP_METHOD(protocolbuffers_php_message_options, setProcessUnknownFields)
 {
-	php_protocolbuffers_message_options_set_value(INTERNAL_FUNCTION_PARAM_PASSTHRU, ZEND_STRS("process_unknown_fields"), IS_BOOL);
+	php_protocolbuffers_message_options_set_value(INTERNAL_FUNCTION_PARAM_PASSTHRU, ZEND_STRS("process_unknown_fields"), IS_TRUE);
 }
 /* }}} */
 

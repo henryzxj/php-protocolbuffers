@@ -33,6 +33,8 @@
 #include "field_descriptor.h"
 #include "descriptor_builder.h"
 
+static zend_object_handlers php_protocolbuffers_extension_registry_object_handlers;
+
 zval *php_protocolbuffers_extension_registry_get_instance(TSRMLS_D)
 {
 	if (PBG(extension_registry) == NULL) {
@@ -48,12 +50,12 @@ zval *php_protocolbuffers_extension_registry_get_instance(TSRMLS_D)
 
 int php_protocolbuffers_extension_registry_get_registry(zval *instance, const char* message_class, size_t message_class_len, zval **result TSRMLS_DC)
 {
-	zval **bucket = NULL;
+	zval *bucket = NULL;
 	php_protocolbuffers_extension_registry *registry;
 	registry = PHP_PROTOCOLBUFFERS_GET_OBJECT(php_protocolbuffers_extension_registry, instance);
-
-	if (zend_hash_find(registry->registry, message_class, message_class_len, (void **)&bucket) == SUCCESS) {
-		*result = *bucket;
+	zend_string *kalss_name = zend_string_init(message_class, message_class_len, 0);
+	if ((bucket=zend_hash_find(registry->registry, kalss_name)) != NULL) {
+		*result = bucket;
 		return 1;
 	}
 
@@ -62,11 +64,12 @@ int php_protocolbuffers_extension_registry_get_registry(zval *instance, const ch
 
 int php_protocolbuffers_extension_registry_get_descriptor_by_name(zval *hash, const char* name, size_t name_len, zval **result TSRMLS_DC)
 {
-	zval **bucket = NULL, **bucket2 = NULL;
-
-	if (zend_hash_find(Z_ARRVAL_P(hash), ZEND_STRS("map"), (void **)&bucket) == SUCCESS) {
-		if (zend_hash_find(Z_ARRVAL_PP(bucket), name, name_len+1, (void **)&bucket2) == SUCCESS) {
-			*result = *bucket2;
+	zval *bucket = NULL, *bucket2 = NULL;
+	zend_string *map_key = zend_string_init(ZEND_STRS("map"), 0);
+	if ((bucket=zend_hash_find(Z_ARRVAL_P(hash), map_key)) != NULL) {
+		zend_string *name_key = zend_string_init(name, name_len+1, 0);
+		if ((bucket2=zend_hash_find(Z_ARRVAL_P(bucket), name_key)) != NULL) {
+			*result = bucket2;
 			return 1;
 		}
 	}
@@ -103,15 +106,15 @@ static int sort_cb(const void *a, const void *b)
 }
 
 
-zend_object_value php_protocolbuffers_extension_registry_new(zend_class_entry *ce TSRMLS_DC)
+zend_object *php_protocolbuffers_extension_registry_new(zend_class_entry *ce TSRMLS_DC)
 {
-	zend_object_value retval;
+
 	PHP_PROTOCOLBUFFERS_STD_CREATE_OBJECT(php_protocolbuffers_extension_registry);
 
-	ALLOC_HASHTABLE(object->registry);
-	zend_hash_init(object->registry, 0, NULL, NULL, 0);
+	ALLOC_HASHTABLE(intern->registry);
+	zend_hash_init(intern->registry, 0, NULL, NULL, 0);
 
-	return retval;
+	return &intern->zo;
 }
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_protocolbuffers_extension_registry_add, 0, 0, 3)
@@ -177,7 +180,8 @@ PHP_METHOD(protocolbuffers_extension_registry, add)
 	}
 
 	registry = PHP_PROTOCOLBUFFERS_GET_OBJECT(php_protocolbuffers_extension_registry, instance);
-	if (!zend_hash_exists(registry->registry, message_class_name, message_class_name_len)) {
+	zend_string *message_class_name_key = zend_string_init(message_class_name, message_class_name_len,0);
+	if (!zend_hash_exists(registry->registry, message_class_name_key)) {
 		zval *p = NULL, *p2 = NULL, *p3 = NULL, *p4 = NULL;
 
 //		MAKE_STD_ZVAL(p);
@@ -261,7 +265,7 @@ PHP_METHOD(protocolbuffers_extension_registry, add)
 		}
 
 		zend_declare_property_null(ce, name, len-1, ZEND_ACC_PROTECTED TSRMLS_CC);
-		php_protocolbuffers_get_scheme_container((ce)->name, (ce)->name_length, &container TSRMLS_CC);
+		php_protocolbuffers_get_scheme_container(ZSTR_VAL((ce)->name), ZSTR_LEN((ce)->name), &container TSRMLS_CC);
 		container->scheme = (php_protocolbuffers_scheme*)erealloc(container->scheme, sizeof(php_protocolbuffers_scheme) * (container->size + 1));
 		if (php_protocolbuffers_init_scheme_with_zval(&container->scheme[container->size], extension, descriptor TSRMLS_CC)) {
 			container->scheme[container->size].is_extension = 1;
@@ -286,7 +290,7 @@ void php_protocolbuffers_extension_registry_class(TSRMLS_D)
 	INIT_CLASS_ENTRY(ce, "ProtocolBuffersExtensionRegistry", php_protocolbuffers_extension_registry_methods);
 	php_protocol_buffers_extension_registry_class_entry = zend_register_internal_class(&ce TSRMLS_CC);
 	php_protocol_buffers_extension_registry_class_entry->create_object = php_protocolbuffers_extension_registry_new;
-	php_protocol_buffers_extension_registry_class_entry->ce_flags |= ZEND_ACC_FINAL_CLASS;
+	php_protocol_buffers_extension_registry_class_entry->ce_flags |= ZEND_ACC_FINAL;
 
 	PHP_PROTOCOLBUFFERS_REGISTER_NS_CLASS_ALIAS(PHP_PROTOCOLBUFFERS_NAMESPACE, "ExtensionRegistry", php_protocol_buffers_extension_registry_class_entry);
 }

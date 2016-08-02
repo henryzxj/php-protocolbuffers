@@ -153,7 +153,7 @@ int php_protocolbuffers_get_scheme_container_ex(const char *klass, size_t klass_
 			return 1;
 		}
 	} else {
-		container = *cn;
+		container = cn;
 	}
 
 	*result = container;
@@ -172,7 +172,7 @@ void php_protocolbuffers_process_unknown_field(INTERNAL_FUNCTION_PARAMETERS, php
 	if (container->use_single_property > 0) {
 		unknown_name = php_protocolbuffers_get_default_unknown_property_name();
 		unknown_name_len = php_protocolbuffers_get_default_unknown_property_name_len();
-		unknown_name_key = zend_string_init(unknown_name,unknown_name_len);
+		unknown_name_key = zend_string_init(unknown_name,unknown_name_len,0);
 	} else {
 		unknown_name_key = zend_mangle_property_name((char*)"*", 1, (char*)php_protocolbuffers_get_default_unknown_property_name(), php_protocolbuffers_get_default_unknown_property_name_len(), 0);
 		unknown_name = ZSTR_VAL(unknown_name_key);
@@ -464,7 +464,7 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 				ulong name_hash = 0;
 				zend_string *name_key = NULL;
 
-				php_protocolbuffers_get_scheme_container(s->ce->name, s->ce->name_length, &c_container TSRMLS_CC);
+				php_protocolbuffers_get_scheme_container(ZSTR_VAL(s->ce->name), ZSTR_LEN(s->ce->name), &c_container TSRMLS_CC);
 
 				if (container->use_single_property < 1) {
 					name        = s->mangled_name;
@@ -475,7 +475,7 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 					name_length = s->name_len;
 					name_hash   = s->name_h;
 				}
-				name_key = zend_string_init(name,name_length);
+				name_key = zend_string_init(name,name_length,0);
 				if (prior_scheme != NULL && prior_scheme == s && !s->repeated) {
 					/* NOTE: some protobuf implementation will split child message into each filed. */
 					zval **tt;
@@ -531,7 +531,7 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 					}
 				} else {
 //					zend_hash_quick_update(hresult, name, name_length, name_hash, (void **)&z_obj, sizeof(zval *), NULL);
-					zend_hash_str_update(hresult,name,name_len,z_obj);
+					zend_hash_str_update(hresult,name,name_length,z_obj);
 					Z_ADDREF_P(z_obj);
 				}
 
@@ -750,7 +750,7 @@ int php_protocolbuffers_jsonserialize(INTERNAL_FUNCTION_PARAMETERS, int throws_e
 	zval *tmp = NULL;
 	php_protocolbuffers_scheme_container *container;
 
-	err = php_protocolbuffers_get_scheme_container_ex(ce->name, ce->name_length, throws_exception, &container TSRMLS_CC);
+	err = php_protocolbuffers_get_scheme_container_ex(ZSTR_VAL(ce->name), ZSTR_LEN(ce->name), throws_exception, &container TSRMLS_CC);
 	if (err) {
 		if (EG(exception)) {
 			return err;
@@ -778,7 +778,7 @@ int php_protocolbuffers_encode(INTERNAL_FUNCTION_PARAMETERS, zend_class_entry *c
 	php_protocolbuffers_serializer *ser = NULL;
 	php_protocolbuffers_scheme_container *container;
 
-	err = php_protocolbuffers_get_scheme_container(ce->name, ce->name_length, &container TSRMLS_CC);
+	err = php_protocolbuffers_get_scheme_container(ZSTR_VAL(ce->name), ZSTR_LEN(ce->name), &container TSRMLS_CC);
 	if (err) {
 		if (EG(exception)) {
 			return 1;
@@ -892,9 +892,9 @@ int php_protocolbuffers_decode(INTERNAL_FUNCTION_PARAMETERS, const char *data, i
 void php_protocolbuffers_execute_wakeup(zval *obj, php_protocolbuffers_scheme_container *container TSRMLS_DC)
 {
 	zval fname, *retval_ptr = NULL;
-
+	zend_string *name_key = zend_string_init("__wakeup", sizeof("__wakeup"),0);
 	if (Z_OBJCE_P(obj) != PHP_IC_ENTRY &&
-		zend_hash_exists(&Z_OBJCE_P(obj)->function_table, "__wakeup", sizeof("__wakeup"))) {
+		zend_hash_exists(&Z_OBJCE_P(obj)->function_table, name_key)) {
 
 			INIT_PZVAL(&fname);
 			ZVAL_STRINGL(&fname, "__wakeup", sizeof("__wakeup") -1);
@@ -910,9 +910,9 @@ void php_protocolbuffers_execute_wakeup(zval *obj, php_protocolbuffers_scheme_co
 void php_protocolbuffers_execute_sleep(zval *obj, php_protocolbuffers_scheme_container *container TSRMLS_DC)
 {
 	zval fname, *retval_ptr = NULL;
-
+	zend_string *name_key = zend_string_init("__sleep", sizeof("__sleep"),0);
 	if (Z_OBJCE_P(obj) != PHP_IC_ENTRY &&
-		zend_hash_exists(&Z_OBJCE_P(obj)->function_table, "__sleep", sizeof("__sleep"))) {
+		zend_hash_exists(&Z_OBJCE_P(obj)->function_table, name_key)) {
 
 		INIT_PZVAL(&fname);
 		ZVAL_STRINGL(&fname, "__sleep", sizeof("__sleep") -1);
@@ -945,7 +945,7 @@ void php_protocolbuffers_execute_sleep(zval *obj, php_protocolbuffers_scheme_con
 		while ((entry=zend_hash_get_current_data_ex(Z_ARRVAL_P(retval_ptr), &pos)) != NULL) {
 			for (i = 0; i < container->size; i++) {
 				if (Z_TYPE_P(entry) != IS_STRING) {
-					convert_to_string(*entry);
+					convert_to_string(entry);
 				}
 
 				scheme = &(container->scheme[i]);
@@ -969,7 +969,7 @@ int php_protocolbuffers_properties_init(zval *object, zend_class_entry *ce TSRML
 	php_protocolbuffers_scheme *scheme = NULL;
 	HashTable *properties = NULL;
 
-	if (php_protocolbuffers_get_scheme_container(ce->name, ce->name_length, &container TSRMLS_CC)) {
+	if (php_protocolbuffers_get_scheme_container(ZSTR_VAL(ce->name), ZSTR_LEN(ce->name), &container TSRMLS_CC)) {
 		return 1;
 	}
 

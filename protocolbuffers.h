@@ -299,7 +299,26 @@ typedef struct{
 	STRUCT_NAME##_object_handlers.free_obj = STRUCT_NAME##_free_storage;\
 	intern->zo.handlers = &STRUCT_NAME##_object_handlers;
 
-#define PHP_PROTOCOLBUFFERS_GET_OBJECT(STRUCT_NAME, OBJECT) (STRUCT_NAME *)zend_object_store_get_object(OBJECT TSRMLS_CC);
+//#define PHP_PROTOCOLBUFFERS_GET_OBJECT(STRUCT_NAME, OBJECT) (STRUCT_NAME *)zend_object_store_get_object(OBJECT TSRMLS_CC);
+
+#define PHP_PROTOCOLBUFFERS_GET_OBJECT(STRUCT_NAME, OBJECT) (STRUCT_NAME *)((char*)(Z_OBJ_P(OBJECT)) - XtOffsetOf(STRUCT_NAME, zo));
+
+/* {{{ php_mustache_ast_object_fetch_object */
+
+//static inline struct php_obj_MustacheAST * php_mustache_ast_fetch_object(zend_object * obj TSRMLS_DC)
+//{
+//   return (struct php_obj_MustacheAST *)((char*)(obj) - XtOffsetOf(struct php_obj_MustacheAST, std));
+//}
+//
+//struct php_obj_MustacheAST * php_mustache_ast_object_fetch_object(zval * zv TSRMLS_DC)
+//{
+//   return php_mustache_ast_fetch_object(Z_OBJ_P(zv) TSRMLS_CC);
+//}
+
+
+
+
+
 
 #if PHP_VERSION_ID < 50300
 # ifndef Z_ADDREF_P

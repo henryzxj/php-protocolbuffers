@@ -33,7 +33,8 @@ PHP_METHOD(protocolbuffers_enum, isValid)
 		return;
 	}
 
-	if (zend_call_method_with_0_params(NULL, EG(called_scope), NULL, "getenumdescriptor", &result)) {
+	zend_class_entry *called_scope = zend_get_called_scope(execute_data);
+	if (zend_call_method_with_0_params(NULL, called_scope, NULL, "getenumdescriptor", &result)) {
 		zval *values, *entry;
 		HashPosition pos;
 
@@ -77,8 +78,8 @@ PHP_METHOD(protocolbuffers_enum, getName)
 		"l", &value) == FAILURE) {
 		return;
 	}
-
-	if (zend_call_method_with_0_params(NULL, EG(called_scope), NULL, "getenumdescriptor", &result)) {
+	zend_class_entry *called_scope = zend_get_called_scope(execute_data);
+	if (zend_call_method_with_0_params(NULL, called_scope, NULL, "getenumdescriptor", &result)) {
 		zval *values, *entry;
 		HashPosition pos;
 

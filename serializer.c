@@ -380,7 +380,7 @@ static void php_protocolbuffers_encode_element_msg(PB_ENCODE_CALLBACK_PARAMETERS
 
 	ce = Z_OBJCE_PP(element);
 
-	php_protocolbuffers_get_scheme_container(ce->name, ce->name_length, &n_container TSRMLS_CC);
+	php_protocolbuffers_get_scheme_container(ZSTR_VAL(ce->name), ZSTR_LEN(ce->name), &n_container TSRMLS_CC);
 	if (err) {
 		php_error_docref(NULL TSRMLS_CC, E_ERROR, "php_protocolbuffers_get_scheme_container failed. %s does not have getDescriptor method", ce->name);
 		return;
@@ -710,10 +710,10 @@ static void php_protocolbuffers_encode_unknown_fields(php_protocolbuffers_scheme
 
 int php_protocolbuffers_fetch_element(INTERNAL_FUNCTION_PARAMETERS, php_protocolbuffers_scheme_container *container, HashTable *hash, php_protocolbuffers_scheme *scheme, zval **output)
 {
-	zval **tmp = NULL;
+	zval *tmp = NULL;
 	char *name = {0};
 	int name_len = 0;
-
+	zend_string *name_key = NULL;
 	if (container->use_single_property < 1) {
 		name = scheme->mangled_name;
 		name_len = scheme->mangled_name_len;
@@ -721,9 +721,9 @@ int php_protocolbuffers_fetch_element(INTERNAL_FUNCTION_PARAMETERS, php_protocol
 		name = scheme->name;
 		name_len = scheme->name_len;
 	}
-
-	if (zend_hash_find(hash, name, name_len, (void **)&tmp) == SUCCESS) {
-		*output = *tmp;
+	name_key = zend_string_init(name,name_len,0);
+	if ((tmp=zend_hash_find(hash, name_key)) != NULL) {
+		*output = tmp;
 	} else {
 		if (scheme->required > 0) {
 			zend_throw_exception_ex(php_protocol_buffers_invalid_protocolbuffers_exception_class_entry, 0 TSRMLS_CC, "the class does not declared required property `%s`. probably you missed declaration", scheme->name);
@@ -737,7 +737,7 @@ int php_protocolbuffers_encode_message(INTERNAL_FUNCTION_PARAMETERS, zval *klass
 {
 	int i = 0;
 	php_protocolbuffers_serializer *ser;
-	zval **c = NULL;
+	zval *c = NULL;
 	HashTable *hash = NULL;
 	php_protocolbuffers_scheme *scheme;
 
@@ -750,8 +750,9 @@ int php_protocolbuffers_encode_message(INTERNAL_FUNCTION_PARAMETERS, zval *klass
 	if (container->use_single_property < 1) {
 		hash = Z_OBJPROP_P(klass);
 	} else {
-		if (zend_hash_find(Z_OBJPROP_P(klass), container->single_property_name, container->single_property_name_len+1, (void**)&c) == SUCCESS) {
-			hash = Z_ARRVAL_PP(c);
+		zend_string *single_property_name_key = zend_string_init(container->single_property_name, container->single_property_name_len+1,0);
+		if ((c=zend_hash_find(Z_OBJPROP_P(klass), single_property_name_key)) != NULL) {
+			hash = Z_ARRVAL_P(c);
 		} else {
 			php_protocolbuffers_serializer_destroy(ser);
 			zend_throw_exception_ex(spl_ce_InvalidArgumentException, 0 TSRMLS_CC, "the class does not have `_properties` protected property.");

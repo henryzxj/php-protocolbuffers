@@ -12,23 +12,24 @@ PHP_METHOD(protocolbuffers_enum_value_descriptor, __construct)
 		"a", &value) == FAILURE) {
 		return;
 	}
+	zend_string *name_key=zend_string_init(ZEND_STRS("name"),0);
+	zend_string *value_key=zend_string_init(ZEND_STRS("value"),0);
 
-	if (!(zend_hash_exists(Z_ARRVAL_P(value), ZEND_STRS("name"))
-		&& zend_hash_exists(Z_ARRVAL_P(value), ZEND_STRS("value")))) {
+	if (!(zend_hash_exists(Z_ARRVAL_P(value), name_key)&&zend_hash_exists(Z_ARRVAL_P(value), value_key))) {
 		zend_throw_exception_ex(spl_ce_InvalidArgumentException, 0 TSRMLS_CC, "expects `name` and `value` key");
 		return;
 	}
 
-	zend_string *name_key =zend_string_init(ZEND_STRS("name"),0);
+	//zend_string *name_key =zend_string_init(ZEND_STRS("name"),0);
 	if ((element=zend_hash_find(Z_ARRVAL_P(value), name_key)) != NULL) {
-		MAKE_STD_ZVAL(tmp);
-		ZVAL_ZVAL(tmp, *element, 1, 0);
+		//MAKE_STD_ZVAL(tmp);
+		ZVAL_ZVAL(tmp, element, 1, 0);
  		php_protocolbuffers_set_protected_property(instance, ZEND_STRS("name"), tmp TSRMLS_CC);
 	}
-	zend_string *value_key =zend_string_init(ZEND_STRS("value"),0);
+	//zend_string *value_key =zend_string_init(ZEND_STRS("value"),0);
 	if ((element=zend_hash_find(Z_ARRVAL_P(value), value_key)) != NULL) {
-		MAKE_STD_ZVAL(tmp);
-		ZVAL_ZVAL(tmp, *element, 1, 0);
+		//MAKE_STD_ZVAL(tmp);
+		ZVAL_ZVAL(tmp, element, 1, 0);
  		php_protocolbuffers_set_protected_property(instance, ZEND_STRS("value"), tmp TSRMLS_CC);
 	}
 }

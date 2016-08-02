@@ -264,17 +264,17 @@ static void php_protocolbuffers_unknown_field_get_as(INTERNAL_FUNCTION_PARAMETER
 	RETURN_ZVAL(result, 0, 1);
 }
 
-zend_object_value php_protocolbuffers_unknown_field_new(zend_class_entry *ce TSRMLS_DC)
+zend_object *php_protocolbuffers_unknown_field_new(zend_class_entry *ce TSRMLS_DC)
 {
-	zend_object_value retval;
+	//zend_object_value retval;
 	PHP_PROTOCOLBUFFERS_STD_CREATE_OBJECT(php_protocolbuffers_unknown_field);
 
-	ALLOC_HASHTABLE(object->ht);
-	zend_hash_init(object->ht, 0, NULL, NULL, 0);
+	ALLOC_HASHTABLE(intern->ht);
+	zend_hash_init(intern->ht, 0, NULL, NULL, 0);
 
-	retval.handlers = &php_protocolbuffers_unknown_field_object_handlers;
+//	retval.handlers = &php_protocolbuffers_unknown_field_object_handlers;
 
-	return retval;
+	return &intern->zo;
 }
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_protocolbuffers_unknown_field_get_number, 0, 0, 0)

@@ -40,7 +40,8 @@ PHP_METHOD(protocolbuffers_enum_descriptor_builder, addValue)
 	zend_string *property_key = zend_mangle_property_name((char*)"*", 1, (char*)ZEND_STRS("values"), 0);
 	if ((fields=zend_hash_find(Z_OBJPROP_P(instance), property_key)) != NULL) {
 		if (php_protocolbuffers_read_protected_property(value, ZEND_STRS("name"), &name TSRMLS_CC)) {
-			if (zend_hash_exists(Z_ARRVAL_P(fields), Z_STRVAL_P(name), Z_STRLEN_P(name))) {
+			zend_string *name_key = zend_string_init(Z_STRVAL_P(name), Z_STRLEN_P(name),0);
+			if (zend_hash_exists(Z_ARRVAL_P(fields), name_key)) {
 				if (force < 1) {
 					zend_throw_exception_ex(spl_ce_RuntimeException, 0 TSRMLS_CC, "name `%s` has already registered.", Z_STRVAL_P(name));
 				}
