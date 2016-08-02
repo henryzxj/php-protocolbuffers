@@ -679,26 +679,26 @@ static int php_protocolbuffers_json_encode_value(zval **element, php_protocolbuf
 
 static void php_protocolbuffers_json_encode_element(php_protocolbuffers_scheme_container *container, HashTable *hash, php_protocolbuffers_scheme *scheme, int throws_exception, zval *result TSRMLS_DC)
 {
-	zval **tmp = NULL;
+	zval *tmp = NULL;
 	const char *name = {0};
 	int name_len = 0;
 	php_protocolbuffers_serializer2 *ser = &json_serializer;
 
 	name = php_protocolbuffers_get_property_name(container, scheme, &name_len);
-
-	if (zend_hash_find(hash, name, name_len, (void **)&tmp) == SUCCESS) {
+	zend_string *name_key = zend_string_init(name,name_len,0);
+	if ((tmp=zend_hash_find(hash, name_key)) != NULL) {
 		HashPosition pos;
-		zval **element;
+		zval *element;
 
 		if (scheme->repeated) {
 			zval *outer; // TODO(chobie): abstraction
 
-			if (Z_TYPE_PP(tmp) == IS_ARRAY && zend_hash_num_elements(Z_ARRVAL_PP(tmp)) > 0) {
+			if (Z_TYPE_P(tmp) == IS_ARRAY && zend_hash_num_elements(Z_ARRVAL_P(tmp)) > 0) {
 				ser->serialize_repeated_begin(scheme, container, (void*)&outer TSRMLS_CC);
 
-				for(zend_hash_internal_pointer_reset_ex(Z_ARRVAL_PP(tmp), &pos);
-								zend_hash_get_current_data_ex(Z_ARRVAL_PP(tmp), (void **)&element, &pos) == SUCCESS;
-								zend_hash_move_forward_ex(Z_ARRVAL_PP(tmp), &pos)
+				for(zend_hash_internal_pointer_reset_ex(Z_ARRVAL_P(tmp), &pos);
+						(element=zend_hash_get_current_data_ex(Z_ARRVAL_P(tmp), &pos)) != NULL;
+								zend_hash_move_forward_ex(Z_ARRVAL_P(tmp), &pos)
 				) {
 					if (Z_TYPE_PP(element) == IS_NULL) {
 						continue;
@@ -710,22 +710,22 @@ static void php_protocolbuffers_json_encode_element(php_protocolbuffers_scheme_c
 				ser->serialize_repeated_end(result, scheme, container, outer TSRMLS_CC);
 			}
 		} else {
-			if (scheme->required > 0 && Z_TYPE_PP(tmp) == IS_NULL) {
+			if (scheme->required > 0 && Z_TYPE_P(tmp) == IS_NULL) {
 				php_protocolbuffers_raise_error_or_exception(php_protocol_buffers_uninitialized_message_exception_class_entry, E_WARNING, throws_exception, "the class does not have required property `%s`.", scheme->name);
 				return;
 			}
-			if (scheme->required == 0 && Z_TYPE_PP(tmp) == IS_NULL) {
+			if (scheme->required == 0 && Z_TYPE_P(tmp) == IS_NULL) {
 				return;
 			}
-			if (scheme->ce != NULL && Z_TYPE_PP(tmp) != IS_OBJECT) {
+			if (scheme->ce != NULL && Z_TYPE_P(tmp) != IS_OBJECT) {
 				return;
 			}
-			if (Z_TYPE_PP(tmp) == IS_ARRAY) {
+			if (Z_TYPE_P(tmp) == IS_ARRAY) {
 				//php_error_docref(NULL TSRMLS_CC, E_WARNING, "%s is not repeated field but array given", scheme->name);
 				return;
 			}
 
-			php_protocolbuffers_json_encode_value(tmp, container, scheme, ser, throws_exception, (void*)result TSRMLS_CC);
+			php_protocolbuffers_json_encode_value(&tmp, container, scheme, ser, throws_exception, (void*)result TSRMLS_CC);
 		}
 	} else {
 		if (scheme->required > 0) {

@@ -30,7 +30,7 @@
 
 #include "protocolbuffers.h"
 #include "message.h"
-#include "ext/standard/php_smart_str.h"
+#include "ext/standard/php_smart_string.h"
 #include "unknown_field_set.h"
 #include "extension_registry.h"
 
@@ -207,10 +207,10 @@ static void php_protocolbuffers_message_merge_from(php_protocolbuffers_scheme_co
 
 	int i = 0;
 	for (i = 0; i < container->size; i++) {
-		zval **tmp = NULL;
+		zval *tmp = NULL;
 		char *name = {0};
 		int name_len = 0;
-
+		zend_string *name_key = NULL;
 		scheme = &(container->scheme[i]);
 
 		if (container->use_single_property > 0) {
@@ -220,51 +220,51 @@ static void php_protocolbuffers_message_merge_from(php_protocolbuffers_scheme_co
 			name = scheme->mangled_name;
 			name_len = scheme->mangled_name_len;
 		}
-
-		if (zend_hash_find(hts, name, name_len, (void **)&tmp) == SUCCESS) {
+		name_key = zend_string_init(name,name_len,0);
+		if ((tmp=zend_hash_find(hts, name_key)) != NULL) {
 			zval *val;
 
-			switch (Z_TYPE_PP(tmp)) {
+			switch (Z_TYPE_P(tmp)) {
 			case IS_NULL:
 			break;
 			case IS_STRING:
 				MAKE_STD_ZVAL(val);
-				ZVAL_STRINGL(val, Z_STRVAL_PP(tmp), Z_STRLEN_PP(tmp), 1);
+				ZVAL_STRINGL(val, Z_STRVAL_PP(tmp), Z_STRLEN_PP(tmp));
 
 				Z_ADDREF_P(val);
-				zend_hash_update(htt, name, name_len, (void **)&val, sizeof(zval *), NULL);
+				zend_hash_update(htt, name_key, val);
 				zval_ptr_dtor(val);
 				break;
 			case IS_LONG:
 				MAKE_STD_ZVAL(val);
-				ZVAL_LONG(val, Z_LVAL_PP(tmp));
+				ZVAL_LONG(val, Z_LVAL_P(tmp));
 
 				Z_ADDREF_P(val);
-				zend_hash_update(htt, name, name_len, (void **)&val, sizeof(zval *), NULL);
+				zend_hash_update(htt, name_key, val);
 				zval_ptr_dtor(val);
 			break;
 			case IS_DOUBLE:
 				MAKE_STD_ZVAL(val);
-				ZVAL_DOUBLE(val, Z_DVAL_PP(tmp));
+				ZVAL_DOUBLE(val, Z_DVAL_P(tmp));
 
 				Z_ADDREF_P(val);
-				zend_hash_update(htt, name, name_len, (void **)&val, sizeof(zval *), NULL);
+				zend_hash_update(htt, name_key, val);
 				zval_ptr_dtor(val);
 			break;
 			case IS_OBJECT:
 			{
-				zval **tmp2 = NULL;
+				zval *tmp2 = NULL;
 
-				if (zend_hash_find(htt, name, name_len, (void **)&tmp2) == SUCCESS) {
-					if (Z_TYPE_PP(tmp2) == IS_OBJECT) {
+				if ((tmp2=zend_hash_find(htt, name_key)) != NULL) {
+					if (Z_TYPE_P(tmp2) == IS_OBJECT) {
 						char *n;
 						int n_len;
 						php_protocolbuffers_scheme_container *c;
 						HashTable *_htt = NULL, *_hts = NULL;
 
-						PHP_PROTOCOLBUFFERS_MESSAGE_CHECK_SCHEME2(*tmp, &c, p)
-						php_protocolbuffers_get_hash(c, c->scheme, *tmp, &n, &n_len, &_htt TSRMLS_CC);
-						php_protocolbuffers_get_hash(c, c->scheme, *tmp2, &n, &n_len, &_hts TSRMLS_CC);
+						PHP_PROTOCOLBUFFERS_MESSAGE_CHECK_SCHEME2(tmp, &c, p)
+						php_protocolbuffers_get_hash(c, c->scheme, tmp, &n, &n_len, &_htt TSRMLS_CC);
+						php_protocolbuffers_get_hash(c, c->scheme, tmp2, &n, &n_len, &_hts TSRMLS_CC);
 
 						php_protocolbuffers_message_merge_from(c, _htt, _hts TSRMLS_CC);
 					} else {
@@ -272,39 +272,39 @@ static void php_protocolbuffers_message_merge_from(php_protocolbuffers_scheme_co
 						ZVAL_ZVAL(val, *tmp, 1, 0);
 
 						Z_ADDREF_P(val);
-						zend_hash_update(htt, name, name_len, (void **)&val, sizeof(zval *), NULL);
+						zend_hash_update(htt, name_key, val);
 						zval_ptr_dtor(val);
 					}
 				} else {
 					MAKE_STD_ZVAL(val);
-					ZVAL_ZVAL(val, *tmp, 1, 0);
+					ZVAL_ZVAL(val, tmp, 1, 0);
 
 					Z_ADDREF_P(val);
-					zend_hash_update(htt, name, name_len, (void **)&val, sizeof(zval *), NULL);
+					zend_hash_update(htt, name_key, val);
 					zval_ptr_dtor(val);
 				}
 			}
 			break;
 			case IS_ARRAY: {
-				zval **tmp2 = NULL;
+				zval *tmp2 = NULL;
 
-				if (zend_hash_find(htt, name, name_len, (void **)&tmp2) == SUCCESS) {
+				if ((tmp2=zend_hash_find(htt, name_key)) != NULL) {
 					if (Z_TYPE_PP(tmp2) == IS_ARRAY) {
-						php_array_merge(Z_ARRVAL_PP(tmp2), Z_ARRVAL_PP(tmp), 1 TSRMLS_CC);
+						php_array_merge(Z_ARRVAL_P(tmp2), Z_ARRVAL_P(tmp), 1 TSRMLS_CC);
 					} else {
 						MAKE_STD_ZVAL(val);
-						ZVAL_ZVAL(val, *tmp, 1, 0);
+						ZVAL_ZVAL(val, tmp, 1, 0);
 
 						Z_ADDREF_P(val);
-						zend_hash_update(htt, name, name_len, (void **)&val, sizeof(zval *), NULL);
+						zend_hash_update(htt, name_key, val);
 						zval_ptr_dtor(val);
 					}
 				} else {
 					MAKE_STD_ZVAL(val);
-					ZVAL_ZVAL(val, *tmp, 1, 0);
+					ZVAL_ZVAL(val, tmp, 1, 0);
 
 					Z_ADDREF_P(val);
-					zend_hash_update(htt, name, name_len, (void **)&val, sizeof(zval *), NULL);
+					zend_hash_update(htt, name_key, val);
 					zval_ptr_dtor(val);
 				}
 			}
@@ -357,7 +357,7 @@ static inline void php_protocolbuffers_typeconvert(php_protocolbuffers_scheme *s
 				}\
 			break;\
 			case TYPE_BOOL:\
-				if (Z_TYPE_P(vl) != IS_BOOL) {\
+				if (Z_TYPE_P(vl) != IS_TRUE&&Z_TYPE_P(vl) != IS_FALSE) {\
 					convert_to_boolean(vl);\
 				}\
 			break;\
@@ -367,13 +367,13 @@ static inline void php_protocolbuffers_typeconvert(php_protocolbuffers_scheme *s
 	if (scheme->repeated < 1) {
 		TYPE_CONVERT(vl)
 	} else {
-		zval **entry;
+		zval *entry;
 		HashPosition pos;
 
 		if (Z_TYPE_P(vl) == IS_ARRAY) {
 			zend_hash_internal_pointer_reset_ex(Z_ARRVAL_P(vl), &pos);
-			while (zend_hash_get_current_data_ex(Z_ARRVAL_P(vl), (void **)&entry, &pos) == SUCCESS) {
-				TYPE_CONVERT(*entry)
+			while ((entry=zend_hash_get_current_data_ex(Z_ARRVAL_P(vl), &pos)) != NULL) {
+				TYPE_CONVERT(entry)
 
 				zend_hash_move_forward_ex(Z_ARRVAL_P(vl), &pos);
 			}
@@ -483,12 +483,12 @@ static void php_protocolbuffers_message_set(INTERNAL_FUNCTION_PARAMETERS, zval *
 	php_protocolbuffers_scheme *scheme;
 	php_protocolbuffers_message *m;
 	zval *tmp;
-	zval **e = NULL;
+	zval *e = NULL;
 	HashTable *htt;
 	char *n = {0};
 	int n_len = 0;
 	int should_free = 0;
-
+	zend_string *n_key = NULL;
 	scheme = php_protocolbuffers_message_get_scheme_by_name(container, name, name_len, name2, name2_len);
 	if (scheme == NULL) {
 		zval_ptr_dtor(value);
@@ -511,38 +511,38 @@ static void php_protocolbuffers_message_set(INTERNAL_FUNCTION_PARAMETERS, zval *
 	if (scheme->ce != NULL) {
 		if (scheme->repeated) {
 			HashPosition pos;
-			zval **element, *outer;
+			zval *element, *outer;
 
 			if (zend_hash_num_elements(Z_ARRVAL_P(value)) > 0) {
 				MAKE_STD_ZVAL(outer);
 				array_init(outer);
 
 				for(zend_hash_internal_pointer_reset_ex(Z_ARRVAL_P(value), &pos);
-								zend_hash_get_current_data_ex(Z_ARRVAL_P(value), (void **)&element, &pos) == SUCCESS;
+								(element=zend_hash_get_current_data_ex(Z_ARRVAL_P(value), &pos)) != NULL;
 								zend_hash_move_forward_ex(Z_ARRVAL_P(value), &pos)
 				) {
 					zval *child, *param;
 
-					if (Z_TYPE_PP(element) == IS_NULL) {
+					if (Z_TYPE_P(element) == IS_NULL) {
 						continue;
 					}
 
-					if (Z_TYPE_PP(element) == IS_OBJECT) {
-						if (scheme->ce != Z_OBJCE_PP(element)) {
+					if (Z_TYPE_P(element) == IS_OBJECT) {
+						if (scheme->ce != Z_OBJCE_P(element)) {
 							zval_ptr_dtor(outer);
 							zend_throw_exception_ex(spl_ce_InvalidArgumentException, 0 TSRMLS_CC, "expected %s class. given %s class", scheme->ce->name, Z_OBJCE_PP(element)->name);
 							return;
 						} else {
-							m = PHP_PROTOCOLBUFFERS_GET_OBJECT(php_protocolbuffers_message, *element);
+							m = PHP_PROTOCOLBUFFERS_GET_OBJECT(php_protocolbuffers_message, element);
 							ZVAL_ZVAL(m->container, instance, 0, 0);
 
-							Z_ADDREF_PP(element);
-							add_next_index_zval(outer, *element);
+							Z_ADDREF_P(element);
+							add_next_index_zval(outer, element);
 						}
 					} else {
 						MAKE_STD_ZVAL(child);
 						MAKE_STD_ZVAL(param);
-						ZVAL_ZVAL(param, *element, 1, 0);
+						ZVAL_ZVAL(param, element, 1, 0);
 
 						object_init_ex(child, scheme->ce);
 						php_protocolbuffers_properties_init(child, scheme->ce TSRMLS_CC);
@@ -591,27 +591,27 @@ static void php_protocolbuffers_message_set(INTERNAL_FUNCTION_PARAMETERS, zval *
 	}
 
 	php_protocolbuffers_message_get_hash_table_by_container(container, scheme, instance, &htt, &n, &n_len TSRMLS_CC);
-
-	if (zend_hash_find(htt, n, n_len, (void **)&e) == SUCCESS) {
+	n_key = zend_string_init(n,n_len,0);
+	if ((e=zend_hash_find(htt, n_key)) != NULL) {
 		zval *vl = NULL;
 
 		if (container->use_single_property > 0) {
 			MAKE_STD_ZVAL(vl);
-			ZVAL_ZVAL(vl, *e, 1, 0);
+			ZVAL_ZVAL(vl, e, 1, 0);
 			php_protocolbuffers_typeconvert(scheme, vl TSRMLS_CC);
-
+			zend_string *scheme_name_key = zend_string_init(scheme->name, scheme->name_len, 0);
 			Z_ADDREF_P(vl);
-			zend_hash_update(htt, scheme->name, scheme->name_len, (void **)&vl, sizeof(zval *), NULL);
+			zend_hash_update(htt, scheme_name_key, vl);
 			zval_ptr_dtor(vl);
 		} else {
-			zval *garvage = *e;
+			zval *garvage = e;
 
 			MAKE_STD_ZVAL(vl);
 			ZVAL_ZVAL(vl, value, 1, 0);
 
 			Z_ADDREF_P(vl);
 			php_protocolbuffers_typeconvert(scheme, vl TSRMLS_CC);
-			*e = vl;
+			e = vl;
 			zval_ptr_dtor(garvage);
 			zval_ptr_dtor(vl);
 		}
@@ -624,11 +624,11 @@ static void php_protocolbuffers_message_set(INTERNAL_FUNCTION_PARAMETERS, zval *
 static void php_protocolbuffers_message_clear(INTERNAL_FUNCTION_PARAMETERS, zval *instance, php_protocolbuffers_scheme_container *container, char *name, int name_len, char *name2, int name2_len)
 {
 	php_protocolbuffers_scheme *scheme;
-	zval **e = NULL;
+	zval *e = NULL;
 	HashTable *htt;
 	char *n = {0};
 	int n_len = 0;
-
+	zend_string *n_key = NULL;
 	scheme = php_protocolbuffers_message_get_scheme_by_name(container, name, name_len, name2, name2_len);
 	if (scheme == NULL) {
 		zend_throw_exception_ex(spl_ce_InvalidArgumentException, 0 TSRMLS_CC, "%s does not find", name);
@@ -641,7 +641,8 @@ static void php_protocolbuffers_message_clear(INTERNAL_FUNCTION_PARAMETERS, zval
 	}
 
 	php_protocolbuffers_message_get_hash_table_by_container(container, scheme, instance, &htt, &n, &n_len TSRMLS_CC);
-	if (zend_hash_find(htt, n, n_len, (void **)&e) == SUCCESS) {
+	n_key = zend_string_init(n,n_len,0);
+	if ((e=zend_hash_find(htt, n_key)) != NULL) {
 		zval *vl = NULL;
 
 		if (container->use_single_property > 0) {
@@ -652,10 +653,10 @@ static void php_protocolbuffers_message_clear(INTERNAL_FUNCTION_PARAMETERS, zval
 				ZVAL_NULL(vl);
 			}
 			php_protocolbuffers_typeconvert(scheme, vl TSRMLS_CC);
-
-			zend_hash_update(htt, scheme->name, scheme->name_len, (void **)&vl, sizeof(zval *), NULL);
+			zend_string *scheme_name_key = zend_string_init(scheme->name, scheme->name_len,0);
+			zend_hash_update(htt, scheme_name_key,vl);
 		} else {
-			zval *garvage = *e;
+			zval *garvage = e;
 
 			MAKE_STD_ZVAL(vl);
 			if (scheme->repeated > 0) {
@@ -664,7 +665,7 @@ static void php_protocolbuffers_message_clear(INTERNAL_FUNCTION_PARAMETERS, zval
 				ZVAL_NULL(vl);
 			}
 
-			*e = vl;
+			e = vl;
 			zval_ptr_dtor(garvage);
 		}
 	}
@@ -674,10 +675,11 @@ static void php_protocolbuffers_message_append(INTERNAL_FUNCTION_PARAMETERS, zva
 {
 	php_protocolbuffers_scheme *scheme;
 	php_protocolbuffers_message *m;
-	zval **e = NULL;
+	zval *e = NULL;
 	HashTable *htt;
 	char *n = {0};
 	int n_len = 0;
+	zend_string *n_key = NULL;
 
 	scheme = php_protocolbuffers_message_get_scheme_by_name(container, name, name_len, name2, name2_len);
 	if (scheme == NULL) {
@@ -715,23 +717,23 @@ static void php_protocolbuffers_message_append(INTERNAL_FUNCTION_PARAMETERS, zva
 	}
 
 	php_protocolbuffers_message_get_hash_table_by_container(container, scheme, instance, &htt, &n, &n_len TSRMLS_CC);
-
-	if (container->use_single_property > 0 && zend_hash_exists(htt, n, n_len) == 0) {
+	n_key = zend_string_init(n,n_len,0);
+	if (container->use_single_property > 0 && zend_hash_exists(htt,n_key) == 0) {
 		zval_ptr_dtor(value);
 		zend_error(E_ERROR, "not initialized");
 		return;
 	}
 
-	if (zend_hash_find(htt, n, n_len, (void **)&e) == SUCCESS) {
+	if ((e=zend_hash_find(htt, n_key)) != NULL) {
 		zval *nval = NULL, *val = NULL;
 		int flag = 0;
 
-		if (Z_TYPE_PP(e) != IS_ARRAY) {
+		if (Z_TYPE_P(e) != IS_ARRAY) {
 			MAKE_STD_ZVAL(nval);
 			array_init(nval);
 			flag = 1;
 		} else {
-			nval = *e;
+			nval = e;
 		}
 
 		MAKE_STD_ZVAL(val);
@@ -739,8 +741,8 @@ static void php_protocolbuffers_message_append(INTERNAL_FUNCTION_PARAMETERS, zva
 
 		Z_ADDREF_P(nval);
 		Z_ADDREF_P(val);
-		zend_hash_next_index_insert(Z_ARRVAL_P(nval), &val, sizeof(zval *), NULL);
-		zend_hash_update(htt, n, n_len, (void **)&nval, sizeof(zval *), NULL);
+		zend_hash_next_index_insert(Z_ARRVAL_P(nval), val);
+		zend_hash_update(htt, n_key, nval);
 		zval_ptr_dtor(val);
 
 		if (flag == 1) {
@@ -786,28 +788,31 @@ static void php_protocolbuffers_message_has(INTERNAL_FUNCTION_PARAMETERS, zval *
 
 static int php_protocolbuffers_get_unknown_zval(zval **retval, php_protocolbuffers_scheme_container *container, zval *instance TSRMLS_DC)
 {
-	zval **unknown_fieldset = NULL;
+	zval *unknown_fieldset = NULL;
 	HashTable *target = NULL;
 	char *unknown_name = {0};
+	zend_string * unknown_name_key = NULL;
 	int free = 0, unknown_name_len = 0, result = 0;
 
 	if (container->use_single_property > 0) {
-		zval **unknown_property;
-		if (zend_hash_find(Z_OBJPROP_P(instance), container->single_property_name, container->single_property_name_len, (void **)&unknown_property) == FAILURE) {
+		zval *unknown_property;
+		zend_string *unknown_property_key = zend_string_init(container->single_property_name,container->single_property_name_len,0);
+		if ((unknown_property=zend_hash_find(Z_OBJPROP_P(instance), unknown_property_key)) == NULL) {
 			return result;
 		}
 
 		unknown_name     = php_protocolbuffers_get_default_unknown_property_name();
 		unknown_name_len = php_protocolbuffers_get_default_unknown_property_name_len();
-		target = Z_ARRVAL_PP(unknown_property);
+		target = Z_ARRVAL_P(unknown_property);
+		unknown_name_key = zend_string_init(unknown_name,unknown_name_len,0);
 	} else {
-		zend_mangle_property_name(&unknown_name, &unknown_name_len, (char*)"*", 1, (char*)php_protocolbuffers_get_default_unknown_property_name(), php_protocolbuffers_get_default_unknown_property_name_len(), 0);
+		unknown_name_key  = zend_mangle_property_name((char*)"*", 1, (char*)php_protocolbuffers_get_default_unknown_property_name(), php_protocolbuffers_get_default_unknown_property_name_len(), 0);
 		target = Z_OBJPROP_P(instance);
 		free = 1;
 	}
 
-	if (zend_hash_find(target, (char*)unknown_name, unknown_name_len, (void **)&unknown_fieldset) == SUCCESS) {
-		*retval = *unknown_fieldset;
+	if ((unknown_fieldset=zend_hash_find(target, unknown_name_key)) != NULL) {
+		*retval = unknown_fieldset;
 		result = 1;
 	}
 
@@ -902,21 +907,22 @@ static enum ProtocolBuffers_MagicMethod php_protocolbuffers_parse_magic_method(c
 static void php_protocolbuffers_set_from(INTERNAL_FUNCTION_PARAMETERS, zval *instance, zval *params)
 {
 	HashPosition pos;
-	zval **param;
+	zval *param;
 	php_protocolbuffers_scheme_container *container = NULL;
 	char *key;
 	uint key_len;
 	unsigned long index= 0;
+	zend_string *key_name = zend_string_init(key,key_len,0);
 
 	PHP_PROTOCOLBUFFERS_MESSAGE_CHECK_SCHEME
 
 
 	for (zend_hash_internal_pointer_reset_ex(Z_ARRVAL_P(params), &pos);
-		zend_hash_get_current_data_ex(Z_ARRVAL_P(params), (void **)&param, &pos) == SUCCESS;
+		(param=zend_hash_get_current_data_ex(Z_ARRVAL_P(params), &pos)) != NULL;
 		zend_hash_move_forward_ex(Z_ARRVAL_P(params), &pos)) {
 
-		if (zend_hash_get_current_key_ex(Z_ARRVAL_P(params), &key, &key_len, &index, 0, &pos) == HASH_KEY_IS_STRING) {
-			php_protocolbuffers_message_set(INTERNAL_FUNCTION_PARAM_PASSTHRU, instance, container, key, key_len, key, key_len, *param);
+		if (zend_hash_get_current_key_ex(Z_ARRVAL_P(params), &key_name, &index, &pos) == HASH_KEY_IS_STRING) {
+			php_protocolbuffers_message_set(INTERNAL_FUNCTION_PARAM_PASSTHRU, instance, container, key, key_len, key, key_len, param);
 		}
 	}
 }
@@ -1355,11 +1361,12 @@ PHP_METHOD(protocolbuffers_message, getExtension)
 {
 	zval *instance = getThis();
 	zval *registry = php_protocolbuffers_extension_registry_get_instance(TSRMLS_C);
-	zval **e = {0}, **b = {0}, *field_descriptor = NULL, *extension_registry = NULL;
+	zval *e = {0}, *b = {0}, *field_descriptor = NULL, *extension_registry = NULL;
 	zend_class_entry *ce;
 	HashTable *htt = NULL;
 	char *name = {0}, *n = {0};
 	int name_len = 0, n_len = 0;
+	zend_string *n_key = NULL;
 	php_protocolbuffers_scheme_container *container;
 	int is_mangled = 0;
 
@@ -1379,25 +1386,27 @@ PHP_METHOD(protocolbuffers_message, getExtension)
 
 	PHP_PROTOCOLBUFFERS_MESSAGE_CHECK_SCHEME
 	if (container->use_single_property > 0) {
-		if (zend_hash_find(Z_OBJPROP_P(instance), container->single_property_name, container->single_property_name_len, (void **)&b) == FAILURE) {
+		zend_string * single_property_name_key = zend_string_init(container->single_property_name, container->single_property_name_len,0);
+		if ((b=zend_hash_find(Z_OBJPROP_P(instance), single_property_name_key)) == NULL) {
 			return;
 		}
 
 		n = name;
 		n_len = name_len;
-		htt = Z_ARRVAL_PP(b);
+		htt = Z_ARRVAL_P(b);
+		n_key = zend_string_init(n,n_len,0);
 	} else {
 		htt = Z_OBJPROP_P(instance);
-		zend_mangle_property_name(&n, &n_len, (char*)"*", 1, (char*)name, name_len+1, 0);
+		n_key = zend_mangle_property_name((char*)"*", 1, (char*)name, name_len+1, 0);
 		is_mangled = 1;
 	}
 
-	if (zend_hash_find(htt, n, n_len, (void **)&e) == SUCCESS) {
+	if ((e=zend_hash_find(htt, n_key)) != NULL) {
 		if (is_mangled) {
 			efree(n);
 		}
 
-		if (Z_TYPE_PP(e) == IS_NULL) {
+		if (Z_TYPE_P(e) == IS_NULL) {
 			int x = 0;
 			for (x = 0; x < container->size; x++) {
 				php_protocolbuffers_scheme *scheme;
@@ -1415,7 +1424,7 @@ PHP_METHOD(protocolbuffers_message, getExtension)
 			}
 		}
 
-		RETURN_ZVAL(*e, 1, 0);
+		RETURN_ZVAL(e, 1, 0);
 	}
 
 	return;
@@ -1430,11 +1439,12 @@ PHP_METHOD(protocolbuffers_message, hasExtension)
 {
 	zval *instance = getThis();
 	zval *registry = php_protocolbuffers_extension_registry_get_instance(TSRMLS_C);
-	zval **e = NULL, **b = NULL, *field_descriptor = NULL, *extension_registry = NULL;
+	zval *e = NULL, *b = NULL, *field_descriptor = NULL, *extension_registry = NULL;
 	zend_class_entry *ce;
 	HashTable *htt = NULL;
 	char *name = {0}, *n = {0};
 	int name_len = 0, n_len = 0;
+	zend_string *n_key = NULL;
 	php_protocolbuffers_scheme_container *container;
 	int is_mangled = 0;
 
@@ -1455,24 +1465,26 @@ PHP_METHOD(protocolbuffers_message, hasExtension)
 
 	PHP_PROTOCOLBUFFERS_MESSAGE_CHECK_SCHEME
 	if (container->use_single_property > 0) {
-		if (zend_hash_find(Z_OBJPROP_P(instance), container->single_property_name, container->single_property_name_len, (void **)&b) == FAILURE) {
+		zend_string *single_property_name_key = zend_string_init(container->single_property_name, container->single_property_name_len,0);
+		if ((b=zend_hash_find(Z_OBJPROP_P(instance),single_property_name_key)) == NULL) {
 			return;
 		}
 
 		n = name;
 		n_len = name_len;
-		htt = Z_ARRVAL_PP(b);
+		htt = Z_ARRVAL_P(b);
+		n_key = zend_string_init(n,n_len);
 	} else {
 		htt = Z_OBJPROP_P(instance);
-		zend_mangle_property_name(&n, &n_len, (char*)"*", 1, (char*)name, name_len+1, 0);
+		n_key=zend_mangle_property_name((char*)"*", 1, (char*)name, name_len+1, 0);
 		is_mangled = 1;
 	}
 
-	if (zend_hash_find(htt, n, n_len, (void **)&e) == SUCCESS) {
+	if ((e=zend_hash_find(htt, n_key)) != NULL) {
 		if (is_mangled) {
 			efree(n);
 		}
-		if (Z_TYPE_PP(e) == IS_NULL) {
+		if (Z_TYPE_P(e) == IS_NULL) {
 			RETURN_FALSE;
 		} else {
 			RETURN_TRUE;
@@ -1491,11 +1503,12 @@ PHP_METHOD(protocolbuffers_message, setExtension)
 {
 	zval *instance = getThis();
 	zval *registry = php_protocolbuffers_extension_registry_get_instance(TSRMLS_C);
-	zval *field_descriptor = NULL, *extension_registry = NULL, *value = NULL, **b = NULL;
+	zval *field_descriptor = NULL, *extension_registry = NULL, *value = NULL, *b = NULL;
 	zend_class_entry *ce;
 	HashTable *htt = NULL;
 	char *name = {0}, *n = {0};
 	int name_len = 0, n_len = 0;
+	zend_string *n_key=NULL;
 	php_protocolbuffers_scheme_container *container;
 	int is_mangled = 0;
 
@@ -1516,21 +1529,23 @@ PHP_METHOD(protocolbuffers_message, setExtension)
 
 	PHP_PROTOCOLBUFFERS_MESSAGE_CHECK_SCHEME
 	if (container->use_single_property > 0) {
-		if (zend_hash_find(Z_OBJPROP_P(instance), container->single_property_name, container->single_property_name_len+1, (void **)&b) == FAILURE) {
+		zend_string *single_property_name = zend_string_init(container->single_property_name, container->single_property_name_len+1,0);
+		if ((b=zend_hash_find(Z_OBJPROP_P(instance), single_property_name)) == NULL) {
 			return;
 		}
 
 		n = name;
 		n_len = name_len+1;
-		htt = Z_ARRVAL_PP(b);
+		htt = Z_ARRVAL_P(b);
+		n_key = zend_string_init(n,n_len,0);
 	} else {
 		htt = Z_OBJPROP_P(instance);
-		zend_mangle_property_name(&n, &n_len, (char*)"*", 1, (char*)name, name_len+1, 0);
+		n_key = zend_mangle_property_name((char*)"*", 1, (char*)name, name_len+1, 0);
 		is_mangled = 1;
 	}
 
 	Z_ADDREF_P(value);
-	zend_hash_update(htt, n, n_len, (void **)&value, sizeof(zval *), NULL);
+	zend_hash_update(htt, n_key, value);
 	if (is_mangled) {
 		efree(n);
 	}
@@ -1547,11 +1562,12 @@ PHP_METHOD(protocolbuffers_message, clearExtension)
 {
 	zval *instance = getThis();
 	zval *registry = php_protocolbuffers_extension_registry_get_instance(TSRMLS_C);
-	zval **e = {0}, **b = {0}, *field_descriptor = NULL, *extension_registry = NULL;
+	zval *e = {0}, *b = {0}, *field_descriptor = NULL, *extension_registry = NULL;
 	zend_class_entry *ce;
 	HashTable *htt = NULL;
 	char *name = {0}, *n = {0};
 	int name_len = 0, n_len = 0;
+	zend_string *n_key=NULL;
 	php_protocolbuffers_scheme_container *container;
 	int is_mangled = 0;
 
@@ -1572,20 +1588,22 @@ PHP_METHOD(protocolbuffers_message, clearExtension)
 
 	PHP_PROTOCOLBUFFERS_MESSAGE_CHECK_SCHEME
 	if (container->use_single_property > 0) {
-		if (zend_hash_find(Z_OBJPROP_P(instance), container->single_property_name, container->single_property_name_len, (void **)&b) == FAILURE) {
+		zend_string *single_property_name = zend_string_init(container->single_property_name, container->single_property_name_len,0);
+		if ((b=zend_hash_find(Z_OBJPROP_P(instance), single_property_name)) == NULL) {
 			return;
 		}
 
 		n = name;
 		n_len = name_len;
-		htt = Z_ARRVAL_PP(b);
+		htt = Z_ARRVAL_P(b);
+		n_key = zend_string_init(n,n_len,0);
 	} else {
 		htt = Z_OBJPROP_P(instance);
-		zend_mangle_property_name(&n, &n_len, (char*)"*", 1, (char*)name, name_len+1, 0);
+		n_key=zend_mangle_property_name((char*)"*", 1, (char*)name, name_len+1, 0);
 		is_mangled = 1;
 	}
 
-	if (zend_hash_find(htt, n, n_len, (void **)&e) == SUCCESS) {
+	if ((e=zend_hash_find(htt, n_key)) != NULL) {
 		zval *tmp;
 		if (is_mangled) {
 			efree(n);
@@ -1593,7 +1611,7 @@ PHP_METHOD(protocolbuffers_message, clearExtension)
 		zval_ptr_dtor(e);
 		MAKE_STD_ZVAL(tmp);
 		ZVAL_NULL(tmp);
-		*e = tmp;
+		e = tmp;
 		RETURN_NULL();
 	}
 
@@ -1669,7 +1687,8 @@ PHP_METHOD(protocolbuffers_message, jsonSerialize)
 
 	if (json_serializable_checked == 0) {
 		/* checks JsonSerializable class (for json dynamic module)*/
-		if (zend_lookup_class("JsonSerializable", sizeof("JsonSerializable")-1, &json TSRMLS_CC) != FAILURE) {
+		zend_string *JsonSerializable_key = zend_sgring("JsonSerializable", sizeof("JsonSerializable")-1,0);
+		if ((json=zend_lookup_class(JsonSerializable_key)) != NULL) {
 			if (!instanceof_function(php_protocol_buffers_message_class_entry, *json TSRMLS_CC)) {
 				zend_throw_exception_ex(spl_ce_RuntimeException, 0 TSRMLS_CC, "JsonSerializable does not support on this version (probably json module doesn't load)");
 				return;

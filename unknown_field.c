@@ -45,13 +45,15 @@ void php_protocolbuffers_unknown_field_properties_init(zval *object TSRMLS_DC)
 
 	MAKE_STD_ZVAL(number);
 	ZVAL_NULL(number);
-	zend_hash_update(properties, "number", sizeof("number"), (void **)&number, sizeof(zval), NULL);
+	zend_string *number_key = zend_string_init("number", sizeof("number"), 0);
+	zend_hash_update(properties, number_key,number);
 
 	MAKE_STD_ZVAL(type);
 	ZVAL_NULL(type);
-	zend_hash_update(properties, "type", sizeof("type"), (void **)&type, sizeof(zval), NULL);
+	zend_string *type_key = zend_string_init("type", sizeof("type"), 0);
+	zend_hash_update(properties, type_key, type);
 
-	zend_merge_properties(object, properties, 1 TSRMLS_CC);
+	zend_merge_properties(object, properties);
 #endif
 }
 
@@ -77,10 +79,12 @@ static HashTable *php_protocolbuffers_unknown_field_get_debug_info(zval *obj, in
 	ZVAL_LONG(number, field->number);
 	ZVAL_LONG(type, field->type);
 	ZVAL_LONG(count, zend_hash_num_elements(field->ht));
-
-	zend_hash_update(ht, "number", sizeof("number"), (void **)&number, sizeof(zval *), NULL);
-	zend_hash_update(ht, "type", sizeof("type"), (void **)&type, sizeof(zval *), NULL);
-	zend_hash_update(ht, "count", sizeof("count"), (void **)&count, sizeof(zval *), NULL);
+	zend_string *number_key = zend_string_init("number", sizeof("number"), 0);
+	zend_hash_update(ht, number_key, number);
+	zend_string *type_key = zend_string_init("number", sizeof("number"), 0);
+	zend_hash_update(ht, type_key, type);
+	zend_string *count_key = zend_string_init("count", sizeof("count"), 0);
+	zend_hash_update(ht, count_key, count);
 
 	return ht;
 }
@@ -108,16 +112,15 @@ void php_protocolbuffers_unknown_field_set_number(zval *instance, int number TSR
 	php_protocolbuffers_unknown_field *field = NULL;
 	char *name = {0};
 	int name_len = 0;
-	zval **result = NULL;
-
+	zval *result = NULL;
 	field = PHP_PROTOCOLBUFFERS_GET_OBJECT(php_protocolbuffers_unknown_field, instance);
-	zend_mangle_property_name(&name, &name_len, (char*)"*", 1, (char*)ZEND_STRS("number"), 0);
-	if (zend_hash_find(Z_OBJPROP_P(instance), name, name_len, (void **)&result) == SUCCESS) {
+	zend_string *name_key = zend_mangle_property_name((char*)"*", 1, (char*)ZEND_STRS("number"), 0);
+	if ((result=zend_hash_find(Z_OBJPROP_P(instance), name_key)) != NULL) {
 		zval *tmp;
 
 		MAKE_STD_ZVAL(tmp);
 		ZVAL_LONG(tmp, number);
-		zend_hash_update(Z_OBJPROP_P(instance), name, name_len, (void **)&tmp, sizeof(zval), NULL);
+		zend_hash_update(Z_OBJPROP_P(instance), name_key, tmp);
 		field->number = number;
 	}
 	efree(name);
@@ -128,16 +131,16 @@ void php_protocolbuffers_unknown_field_set_type(zval *instance, int type TSRMLS_
 	php_protocolbuffers_unknown_field *field = NULL;
 	char *name = {0};
 	int name_len = 0;
-	zval **result = NULL;
+	zval *result = NULL;
 
 	field = PHP_PROTOCOLBUFFERS_GET_OBJECT(php_protocolbuffers_unknown_field, instance);
-	zend_mangle_property_name(&name, &name_len, (char*)"*", 1, (char*)ZEND_STRS("type"), 0);
-	if (zend_hash_find(Z_OBJPROP_P(instance), name, name_len, (void **)&result) == SUCCESS) {
+	zend_string *name_key = zend_mangle_property_name((char*)"*", 1, (char*)ZEND_STRS("type"), 0);
+	if ((result=zend_hash_find(Z_OBJPROP_P(instance), name_key)) != NULL) {
 		zval *tmp;
 
 		MAKE_STD_ZVAL(tmp);
 		ZVAL_LONG(tmp, type);
-		zend_hash_update(Z_OBJPROP_P(instance), name, name_len, (void **)&tmp, sizeof(zval), NULL);
+		zend_hash_update(Z_OBJPROP_P(instance), name_key,tmp);
 		field->type = type;
 	}
 	efree(name);
@@ -148,25 +151,25 @@ void php_protocolbuffers_unknown_field_set_type(zval *instance, int type TSRMLS_
 static void php_protocolbuffers_unknown_field_free_storage(php_protocolbuffers_unknown_field *object TSRMLS_DC)
 {
 	HashPosition pos;
-	unknown_value **element;
+	unknown_value *element;
 
 	for(zend_hash_internal_pointer_reset_ex(object->ht, &pos);
-						zend_hash_get_current_data_ex(object->ht, (void **)&element, &pos) == SUCCESS;
+						(element=zend_hash_get_current_data_ex(object->ht, &pos)) != NULL;
 						zend_hash_move_forward_ex(object->ht, &pos)
 		) {
 		switch (object->type) {
 			case WIRETYPE_VARINT:
-				efree(*element);
+				efree(element);
 			break;
 			case WIRETYPE_FIXED64:
 			case WIRETYPE_FIXED32:
 			case WIRETYPE_LENGTH_DELIMITED:
-				if ((*element)->buffer.len > 0) {
-					efree((*element)->buffer.val);
-					(*element)->buffer.val = NULL;
-					(*element)->buffer.len = 0;
+				if ((element)->buffer.len > 0) {
+					efree((element)->buffer.val);
+					(element)->buffer.val = NULL;
+					(element)->buffer.len = 0;
 				}
-				efree(*element);
+				efree(element);
 			break;
 		}
 	}
@@ -197,7 +200,7 @@ static void php_protocolbuffers_unknown_field_get_as(INTERNAL_FUNCTION_PARAMETER
 {
 	zval *tmp = NULL, *result = NULL, *instance = getThis();
 	php_protocolbuffers_unknown_field *field = NULL;
-	unknown_value **element = NULL;
+	unknown_value *element = NULL;
 	pbf __payload;
 	HashPosition pos;
 
@@ -214,39 +217,39 @@ static void php_protocolbuffers_unknown_field_get_as(INTERNAL_FUNCTION_PARAMETER
 	array_init(result);
 
 	for(zend_hash_internal_pointer_reset_ex(field->ht, &pos);
-						zend_hash_get_current_data_ex(field->ht, (void **)&element, &pos) == SUCCESS;
+						(element=zend_hash_get_current_data_ex(field->ht, &pos)) != NULL;
 						zend_hash_move_forward_ex(field->ht, &pos)) {
 		MAKE_STD_ZVAL(tmp);
 
 		if (type == WIRETYPE_LENGTH_DELIMITED) {
-			ZVAL_STRINGL(tmp, (const char*)(*element)->buffer.val,  (*element)->buffer.len, 1);
+			ZVAL_STRINGL(tmp, (const char*)(element)->buffer.val,  (element)->buffer.len);
 		} else {
 			if (field_type == TYPE_DOUBLE) {
 				union {
 					uint64_t v;
 					double d;
 				} u;
-				memcpy(&u.v, (*element)->buffer.val, sizeof(double));
+				memcpy(&u.v, (element)->buffer.val, sizeof(double));
 				__payload.type = TYPE_DOUBLE;__payload.value.d = (double)u.d;
 			} else if (field_type == TYPE_FLOAT) {
 				union {
 					uint32_t v;
 					float f;
 				} u;
-				memcpy(&u.v, (*element)->buffer.val, sizeof(float));
+				memcpy(&u.v, (element)->buffer.val, sizeof(float));
 				__payload.type = TYPE_FLOAT;__payload.value.f = (float)u.f;
 			} else if (type == WIRETYPE_FIXED64) {
 				uint64_t fixed64 = 0;
 
-				memcpy(&fixed64, (*element)->buffer.val, (*element)->buffer.len);
+				memcpy(&fixed64, (element)->buffer.val, (element)->buffer.len);
 				__payload.type = TYPE_FIXED64;__payload.value.uint64 = fixed64;
 			} else if (type == WIRETYPE_FIXED32) {
 				uint32_t fixed32 = 0;
 
-				memcpy(&fixed32, (*element)->buffer.val, (*element)->buffer.len);
+				memcpy(&fixed32, (element)->buffer.val, (element)->buffer.len);
 				__payload.type = TYPE_FIXED32;__payload.value.uint32 = fixed32;
 			} else if (type == WIRETYPE_VARINT) {
-				__payload.type = TYPE_INT64;__payload.value.int64 = (int64_t)(*element)->varint;
+				__payload.type = TYPE_INT64;__payload.value.int64 = (int64_t)(element)->varint;
 			} else {
 				zend_throw_exception_ex(spl_ce_RuntimeException, 0 TSRMLS_CC, "passed unhandled type wire_type:%d field_type:%d. this is bug", type, field_type);
 				return;
@@ -255,7 +258,7 @@ static void php_protocolbuffers_unknown_field_get_as(INTERNAL_FUNCTION_PARAMETER
 			php_protocolbuffers_format_string(tmp, &__payload, use_string TSRMLS_CC);
 		}
 
-		zend_hash_next_index_insert(Z_ARRVAL_P(result), &tmp, sizeof(zval *), NULL);
+		zend_hash_next_index_insert(Z_ARRVAL_P(result), tmp);
 	}
 
 	RETURN_ZVAL(result, 0, 1);

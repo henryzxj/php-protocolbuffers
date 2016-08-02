@@ -189,7 +189,7 @@ PHP_METHOD(protocolbuffers_helper, writeVarint32)
 	}
 	bytes[size++] = value & 0x7F;
 
-	RETURN_STRINGL((char*)bytes, size, 1);
+	RETURN_STRINGL((char*)bytes, size);
 }
 /* }}} */
 
@@ -214,7 +214,7 @@ PHP_METHOD(protocolbuffers_helper, writeVarint64)
 	}
 	bytes[size++] = value & 0x7F;
 
-	RETURN_STRINGL((char*)bytes, size, 1);
+	RETURN_STRINGL((char*)bytes, size);
 }
 /* }}} */
 

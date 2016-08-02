@@ -49,16 +49,16 @@ ZEND_END_ARG_INFO()
 
 static void php_protocolbuffers_message_options_set_value(INTERNAL_FUNCTION_PARAMETERS, char *name, size_t length, int type)
 {
-	zval *value = NULL, **target = NULL, *instance = getThis();
+	zval *value = NULL, *target = NULL, *instance = getThis();
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,
 		"z", &value) == FAILURE) {
 		return;
 	}
-
-	if (zend_hash_find(Z_OBJPROP_P(instance), name, length, (void **)&target) == SUCCESS) {
-		if (type == IS_BOOL) {
-			if (Z_TYPE_P(value) != IS_BOOL) {
+	zend_string *name_key = zend_string_init(name, length,0);
+	if ((target=zend_hash_find(Z_OBJPROP_P(instance), name_key)) != NULL) {
+		if (type == IS_TRUE||type == IS_FALSE) {
+			if (Z_TYPE_P(value) != IS_TRUE&&Z_TYPE_P(value) != IS_FALSE) {
 				convert_to_boolean(value);
 			}
 
@@ -67,8 +67,8 @@ static void php_protocolbuffers_message_options_set_value(INTERNAL_FUNCTION_PARA
 			zval *tmp;
 
 			MAKE_STD_ZVAL(tmp);
-			ZVAL_STRING(tmp, Z_STRVAL_P(value), 1);
-			zend_hash_update(Z_OBJPROP_P(instance), name, length, (void **)&tmp, sizeof(zval*), NULL);
+			ZVAL_STRING(tmp, Z_STRVAL_P(value));
+			zend_hash_update(Z_OBJPROP_P(instance), name_key, tmp);
 		}
 	}
 }

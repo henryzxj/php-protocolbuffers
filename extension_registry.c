@@ -79,10 +79,10 @@ static void php_protocolbuffers_extension_registry_free_storage(php_protocolbuff
 	if (object->registry != NULL) {
 		HashPosition pos = 0;
 		int n = 0;
-		zval **element = {0};
+		zval *element = {0};
 
 		for(n = 0, zend_hash_internal_pointer_reset_ex(object->registry, &pos);
-			zend_hash_get_current_data_ex(object->registry, (void **)&element, &pos) == SUCCESS;
+			(element=zend_hash_get_current_data_ex(object->registry, &pos)) != NULL;
 			zend_hash_move_forward_ex(object->registry, &pos), n++
 		) {
             zval_ptr_dtor(element);
@@ -192,13 +192,16 @@ PHP_METHOD(protocolbuffers_extension_registry, add)
 //		MAKE_STD_ZVAL(p4);
 		array_init(p4);
 
-
-		zend_hash_update(Z_ARRVAL_P(p), "map", sizeof("map"), (void **)&p2, sizeof(zval*), NULL);
-		zend_hash_update(Z_ARRVAL_P(p), "index", sizeof("index"), (void **)&p3, sizeof(zval*), NULL);
-		zend_hash_update(Z_ARRVAL_P(p), "emap", sizeof("emap"), (void **)&p4, sizeof(zval*), NULL);
+		zend_string *map_key = zend_string_init("map", sizeof("map"),0);
+		zend_hash_update(Z_ARRVAL_P(p), map_key, p2);
+		zend_string *index_key = zend_string_init("index", sizeof("index"),0);
+		zend_hash_update(Z_ARRVAL_P(p), index_key, p3);
+		zend_string *emap_key = zend_string_init("emap", sizeof("emap"),0);
+		zend_hash_update(Z_ARRVAL_P(p), emap_key,p4);
 
 		Z_ADDREF_P(p);
-		zend_hash_update(registry->registry, message_class_name, message_class_name_len, (void **)&p, sizeof(zval*), NULL);
+		zend_string *message_class_name_key = zend_string_init(message_class_name, message_class_name_len,0);
+		zend_hash_update(registry->registry, message_class_name_key, p);
 		zval_ptr_dtor(p);
 		p = NULL;
 	}

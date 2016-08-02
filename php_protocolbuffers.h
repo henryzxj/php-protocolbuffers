@@ -102,5 +102,10 @@ ZEND_EXTERN_MODULE_GLOBALS(protocolbuffers)
 #define PBG(v) (protocolbuffers_globals.v)
 #endif
 
+static inline zval* pb_zend_read_property(zend_class_entry *class_ptr, zval *obj, char *s, int len, int silent)
+{
+    zval rv;
+    return zend_read_property(class_ptr, obj, s, len, silent, &rv);
+}
 
 #endif /* PHP_PROTOCOLBUFFERS_H */

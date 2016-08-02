@@ -505,7 +505,7 @@ static void php_protocolbuffers_encode_element_sint64(PB_ENCODE_CALLBACK_PARAMET
 
 static void php_protocolbuffers_encode_element(INTERNAL_FUNCTION_PARAMETERS, php_protocolbuffers_scheme_container *container, HashTable *hash, php_protocolbuffers_scheme *scheme, php_protocolbuffers_serializer *ser, php_protocolbuffers_encode_callback f, int is_packed)
 {
-	zval **tmp = NULL;
+	zval *tmp = NULL;
 	char *name = {0};
 	int name_len = 0;
 
@@ -517,12 +517,13 @@ static void php_protocolbuffers_encode_element(INTERNAL_FUNCTION_PARAMETERS, php
 		name_len = scheme->name_len;
 	}
 
-	if (zend_hash_find(hash, name, name_len, (void **)&tmp) == SUCCESS) {
+	zend_string *name_key = zend_string_init(name,name_len,0);
+	if ((tmp=zend_hash_find(hash, name_key)) != NULL) {
 		php_protocolbuffers_serializer *n_ser = NULL;
 
 		if (scheme->repeated) {
 			HashPosition pos;
-			zval **element;
+			zval *element;
 
 			if (is_packed == 1) {
 				php_protocolbuffers_serializer_init(&n_ser);
@@ -530,13 +531,13 @@ static void php_protocolbuffers_encode_element(INTERNAL_FUNCTION_PARAMETERS, php
 				n_ser = ser;
 			}
 
-			if (Z_TYPE_PP(tmp) != IS_ARRAY) {
-				array_init(*tmp);
+			if (Z_TYPE_P(tmp) != IS_ARRAY) {
+				array_init(tmp);
 			}
 
-			for(zend_hash_internal_pointer_reset_ex(Z_ARRVAL_PP(tmp), &pos);
-							zend_hash_get_current_data_ex(Z_ARRVAL_PP(tmp), (void **)&element, &pos) == SUCCESS;
-							zend_hash_move_forward_ex(Z_ARRVAL_PP(tmp), &pos)
+			for(zend_hash_internal_pointer_reset_ex(Z_ARRVAL_P(tmp), &pos);
+							(element=zend_hash_get_current_data_ex(Z_ARRVAL_P(tmp), &pos)) == SUCCESS;
+							zend_hash_move_forward_ex(Z_ARRVAL_P(tmp), &pos)
 			) {
 				if (Z_TYPE_PP(element) == IS_NULL) {
 					continue;
@@ -557,22 +558,22 @@ static void php_protocolbuffers_encode_element(INTERNAL_FUNCTION_PARAMETERS, php
 			if (is_packed == 1) {
 				php_error_docref(NULL TSRMLS_CC, E_ERROR, "php_protocolbuffers_encode_element_packed called non repeated scheme. this is bug");
 			} else {
-				if (scheme->required > 0 && Z_TYPE_PP(tmp) == IS_NULL) {
+				if (scheme->required > 0 && Z_TYPE_P(tmp) == IS_NULL) {
 					zend_throw_exception_ex(php_protocol_buffers_uninitialized_message_exception_class_entry, 0 TSRMLS_CC, "the class does not have required property `%s`.", scheme->name);
 					return;
 				}
-				if (scheme->required == 0 && Z_TYPE_PP(tmp) == IS_NULL) {
+				if (scheme->required == 0 && Z_TYPE_P(tmp) == IS_NULL) {
 					return;
 				}
-				if (scheme->ce != NULL && Z_TYPE_PP(tmp) != IS_OBJECT) {
+				if (scheme->ce != NULL && Z_TYPE_P(tmp) != IS_OBJECT) {
 					return;
 				}
-				if (Z_TYPE_PP(tmp) == IS_ARRAY) {
+				if (Z_TYPE_P(tmp) == IS_ARRAY) {
 					//php_error_docref(NULL TSRMLS_CC, E_WARNING, "%s is not repeated field but array given", scheme->name);
 					return;
 				}
 
-				f(INTERNAL_FUNCTION_PARAM_PASSTHRU, tmp, scheme, ser, is_packed);
+				f(INTERNAL_FUNCTION_PARAM_PASSTHRU, &tmp, scheme, ser, is_packed);
 			}
 		}
 	} else {
@@ -616,68 +617,68 @@ static void php_protocolbuffers_encode_unknown_fields(php_protocolbuffers_scheme
 {
 	char *uname = {0};
 	int uname_len = 0;
-	zval **unknown = NULL;
-
+	zval *unknown = NULL;
+	zend_string *uname_key=NULL;
 	if (container->use_single_property > 0) {
 		uname = "_unknown";
 		uname_len = sizeof("_unknown");
+		uname_key = zend_string_init(uname,uname_len,0);
 	} else {
-		zend_mangle_property_name(&uname, &uname_len, (char*)"*", 1, (char*)"_unknown", sizeof("_unknown"), 0);
+		uname_key = zend_mangle_property_name((char*)"*", 1, (char*)"_unknown", sizeof("_unknown"), 0);
 	}
 
-	if (zend_hash_find(hash, uname, uname_len, (void**)&unknown) == SUCCESS) {
-		if (Z_TYPE_PP(unknown) == IS_OBJECT
-		 && Z_OBJCE_PP(unknown) == php_protocol_buffers_unknown_field_set_class_entry) {
+	if ((unknown=zend_hash_find(hash, uname_key)) != NULL) {
+		if (Z_TYPE_P(unknown) == IS_OBJECT
+		 && Z_OBJCE_P(unknown) == php_protocol_buffers_unknown_field_set_class_entry) {
 			HashTable *unkht;
-			zval **element, **elmh;
+			zval *element, *elmh;
 			char *uuname;
 			int uuname_len;
+			unkht = Z_OBJPROP_P(unknown);
 
-			unkht = Z_OBJPROP_PP(unknown);
-
-			zend_mangle_property_name(&uuname, &uuname_len, (char*)"*", 1, (char*)"fields", sizeof("fields"), 0);
-			if (zend_hash_find(unkht, uuname, uuname_len, (void**)&elmh) == SUCCESS) {
+			zend_string *uuname_key = zend_mangle_property_name((char*)"*", 1, (char*)"fields", sizeof("fields"), 0);
+			if ((elmh=zend_hash_find(unkht, uuname_key)) != NULL) {
 				HashPosition pos2;
 
-				for(zend_hash_internal_pointer_reset_ex(Z_ARRVAL_PP(elmh), &pos2);
-								zend_hash_get_current_data_ex(Z_ARRVAL_PP(elmh), (void **)&element, &pos2) == SUCCESS;
-								zend_hash_move_forward_ex(Z_ARRVAL_PP(elmh), &pos2)
+				for(zend_hash_internal_pointer_reset_ex(Z_ARRVAL_P(elmh), &pos2);
+								(element=zend_hash_get_current_data_ex(Z_ARRVAL_P(elmh), &pos2)) != NULL;
+								zend_hash_move_forward_ex(Z_ARRVAL_P(elmh), &pos2)
 				) {
 					HashPosition pos;
 					php_protocolbuffers_unknown_field *field = NULL;
-					unknown_value **unknown;
-					field = PHP_PROTOCOLBUFFERS_GET_OBJECT(php_protocolbuffers_unknown_field, *element);
+					unknown_value *unknown;
+					field = PHP_PROTOCOLBUFFERS_GET_OBJECT(php_protocolbuffers_unknown_field, element);
 
 					switch (field->type) {
 						case WIRETYPE_VARINT:
 						{
 							for(zend_hash_internal_pointer_reset_ex(field->ht, &pos);
-												zend_hash_get_current_data_ex(field->ht, (void **)&unknown, &pos) == SUCCESS;
+												(unknown=zend_hash_get_current_data_ex(field->ht, &pos)) != NULL;
 												zend_hash_move_forward_ex(field->ht, &pos)
 								) {
 								php_protocolbuffers_serializer_write_varint32(ser, (field->number << 3) | field->type);
-								php_protocolbuffers_serializer_write_varint32(ser, (*unknown)->varint);
+								php_protocolbuffers_serializer_write_varint32(ser, (unknown)->varint);
 							}
 						}
 						break;
 						case WIRETYPE_FIXED64:
 							for(zend_hash_internal_pointer_reset_ex(field->ht, &pos);
-												zend_hash_get_current_data_ex(field->ht, (void **)&unknown, &pos) == SUCCESS;
+												(unknown=zend_hash_get_current_data_ex(field->ht, &pos)) != NULL;
 												zend_hash_move_forward_ex(field->ht, &pos)
 								) {
 								php_protocolbuffers_serializer_write_varint32(ser, (field->number << 3) | field->type);
-								php_protocolbuffers_serializer_write_chararray(ser, (*unknown)->buffer.val, (*unknown)->buffer.len);
+								php_protocolbuffers_serializer_write_chararray(ser, (unknown)->buffer.val, (unknown)->buffer.len);
 							}
 						break;
 						case WIRETYPE_LENGTH_DELIMITED:
 						{
 							for(zend_hash_internal_pointer_reset_ex(field->ht, &pos);
-												zend_hash_get_current_data_ex(field->ht, (void **)&unknown, &pos) == SUCCESS;
+												(unknown=zend_hash_get_current_data_ex(field->ht, &pos)) != NULL;
 												zend_hash_move_forward_ex(field->ht, &pos)
 								) {
 								php_protocolbuffers_serializer_write_varint32(ser, (field->number << 3) | field->type);
-								php_protocolbuffers_serializer_write_varint32(ser, (*unknown)->buffer.len);
-								php_protocolbuffers_serializer_write_chararray(ser, (*unknown)->buffer.val, (*unknown)->buffer.len);
+								php_protocolbuffers_serializer_write_varint32(ser, (unknown)->buffer.len);
+								php_protocolbuffers_serializer_write_chararray(ser, (unknown)->buffer.val, (unknown)->buffer.len);
 							}
 						}
 						break;
@@ -687,11 +688,11 @@ static void php_protocolbuffers_encode_unknown_fields(php_protocolbuffers_scheme
 						break;
 						case WIRETYPE_FIXED32:
 							for(zend_hash_internal_pointer_reset_ex(field->ht, &pos);
-												zend_hash_get_current_data_ex(field->ht, (void **)&unknown, &pos) == SUCCESS;
+												(unknown=zend_hash_get_current_data_ex(field->ht, &pos)) != NULL;
 												zend_hash_move_forward_ex(field->ht, &pos)
 								) {
 								php_protocolbuffers_serializer_write_varint32(ser, (field->number << 3) | field->type);
-								php_protocolbuffers_serializer_write_chararray(ser, (*unknown)->buffer.val, (*unknown)->buffer.len);
+								php_protocolbuffers_serializer_write_chararray(ser, (unknown)->buffer.val, (unknown)->buffer.len);
 							}
 						break;
 					}

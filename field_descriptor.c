@@ -31,63 +31,60 @@
 #include "protocolbuffers.h"
 #include "field_descriptor.h"
 
-#if PHP_VERSION_ID < 50300
-static int php_protocolbuffers_field_descriptor_process_params(zval **zv, int num_args, va_list args, zend_hash_key *hash_key)
-#else
 static int php_protocolbuffers_field_descriptor_process_params(zval **zv TSRMLS_DC, int num_args, va_list args, zend_hash_key *hash_key)
-#endif
 {
 #if PHP_VERSION_ID < 50300
 	TSRMLS_FETCH();
 #endif
 
-	if (hash_key->nKeyLength == 0) {
+	if (ZSTR_LEN(hash_key->key) == 0) {
 		return 0;
 	} else {
-		const char *key = hash_key->arKey;
-		size_t key_length = hash_key->nKeyLength;
-		zval *value = NULL, **instance = NULL;
+		const char *key = ZSTR_VAL(hash_key->key);
+		size_t key_length = ZSTR_LEN(hash_key->key);
+		zval *value = NULL, *instance = NULL;
 		char *name;
 		int name_length;
+		zend_string * name_key=NULL;
 
-		instance = va_arg(args, zval**);
+		instance = va_arg(args, zval*);
 
 #define PHP_PROTOCOLBUFFERS_PROCESS_BOOL \
 {\
-	zend_mangle_property_name(&name, &name_length, (char*)"*", 1, (char*)key, key_length, 0);\
+	name_key =zend_mangle_property_name((char*)"*", 1, (char*)key, key_length, 0);\
 	\
 	MAKE_STD_ZVAL(value);\
-	if (Z_TYPE_PP(zv) != IS_BOOL) {\
+	if (Z_TYPE_P(*zv) != IS_TRUE&&Z_TYPE_P(*zv) != IS_FALSE) {\
 		convert_to_boolean(*zv);\
 	}\
 	\
 	ZVAL_BOOL(value, Z_BVAL_PP(zv));\
-	zend_hash_update(Z_OBJPROP_PP(instance), name, name_length, (void **)&value, sizeof(zval*), NULL);\
+	zend_hash_update(Z_OBJPROP_P(instance), name_key, value);\
 	efree(name);\
 }
 
 		if (strcmp(key, "type") == 0) {
-			if (Z_TYPE_PP(zv) != IS_LONG) {
+			if (Z_TYPE_P(*zv) != IS_LONG) {
 				convert_to_long(*zv);
 			}
 
-			if (Z_LVAL_PP(zv) > MAX_FIELD_TYPE) {
+			if (Z_LVAL_P(*zv) > MAX_FIELD_TYPE) {
 				zend_throw_exception_ex(spl_ce_InvalidArgumentException, 0 TSRMLS_CC, "ProtocolBuffersFieldDescriptor: type shoud be in %d - %d", 1, MAX_FIELD_TYPE);
 				return 1;
 			}
-			if (Z_LVAL_PP(zv) < 1) {
+			if (Z_LVAL_P(*zv) < 1) {
 				zend_throw_exception_ex(spl_ce_InvalidArgumentException, 0 TSRMLS_CC, "ProtocolBuffersFieldDescriptor: type shoud be in %d - %d", 1, MAX_FIELD_TYPE);
 				return 1;
 			}
-			if (Z_LVAL_PP(zv) == TYPE_GROUP) {
+			if (Z_LVAL_P(*zv) == TYPE_GROUP) {
 				zend_throw_exception_ex(spl_ce_InvalidArgumentException, 0 TSRMLS_CC, "ProtocolBuffersFieldDescriptor: type shoud be in %d - %d. group type does not supported", 1, MAX_FIELD_TYPE);
 				return 1;
 			}
 
-			zend_mangle_property_name(&name, &name_length, (char*)"*", 1, (char*)key, key_length, 0);
+			name_key = zend_mangle_property_name((char*)"*", 1, (char*)key, key_length, 0);
 			MAKE_STD_ZVAL(value);
-			ZVAL_LONG(value, Z_LVAL_PP(zv));
-			zend_hash_update(Z_OBJPROP_PP(instance), name, name_length, (void **)&value, sizeof(zval*), NULL);
+			ZVAL_LONG(value, Z_LVAL_P(*zv));
+			zend_hash_update(Z_OBJPROP_P(instance), name_key, value);
 			efree(name);
 
 		} else if (strcmp(key, "required") == 0) {
@@ -100,26 +97,26 @@ static int php_protocolbuffers_field_descriptor_process_params(zval **zv TSRMLS_
 			PHP_PROTOCOLBUFFERS_PROCESS_BOOL;
 		} else if (strcmp(key, "extension") == 0) {
 			PHP_PROTOCOLBUFFERS_PROCESS_BOOL;
-		} else if (strcmp(key, "message") == 0 && Z_TYPE_PP(zv) == IS_STRING) {
-			zend_mangle_property_name(&name, &name_length, (char*)"*", 1, (char*)key, key_length, 0);
+		} else if (strcmp(key, "message") == 0 && Z_TYPE_P(*zv) == IS_STRING) {
+			name_key = zend_mangle_property_name((char*)"*", 1, (char*)key, key_length, 0);
 
 			MAKE_STD_ZVAL(value);
-			ZVAL_STRING(value, Z_STRVAL_PP(zv), 1);
-			zend_hash_update(Z_OBJPROP_PP(instance), name, name_length, (void **)&value, sizeof(zval*), NULL);
+			ZVAL_STRING(value, Z_STRVAL_P(*zv));
+			zend_hash_update(Z_OBJPROP_P(instance), name_key, value);
 			efree(name);
 		} else if (strcmp(key, "name") == 0) {
-			zend_mangle_property_name(&name, &name_length, (char*)"*", 1, (char*)key, key_length, 0);
+			name_key=zend_mangle_property_name((char*)"*", 1, (char*)key, key_length, 0);
 
 			MAKE_STD_ZVAL(value);
-			ZVAL_STRING(value, Z_STRVAL_PP(zv), 1);
-			zend_hash_update(Z_OBJPROP_PP(instance), name, name_length, (void **)&value, sizeof(zval*), NULL);
+			ZVAL_STRING(value, Z_STRVAL_P(*zv));
+			zend_hash_update(Z_OBJPROP_P(instance), name_key, value);
 			efree(name);
 		} else if (strcmp(key, "default") == 0) {
-			zend_mangle_property_name(&name, &name_length, (char*)"*", 1, (char*)key, key_length, 0);
+			name_key=zend_mangle_property_name( (char*)"*", 1, (char*)key, key_length, 0);
 
 			MAKE_STD_ZVAL(value);
 			ZVAL_ZVAL(value, *zv, 1, 0);
-			zend_hash_update(Z_OBJPROP_PP(instance), name, name_length, (void **)&value, sizeof(zval*), NULL);
+			zend_hash_update(Z_OBJPROP_P(instance), name_key, value);
 			efree(name);
 		} else {
 		}
@@ -151,10 +148,10 @@ static void php_protocolbuffers_field_descriptor_get_property(INTERNAL_FUNCTION_
 
 	if (php_protocolbuffers_read_protected_property(instance, property, property_length, &result TSRMLS_CC)) {
 		if (retval_type == IS_STRING) {
-			RETVAL_STRING(Z_STRVAL_P(result), 1);
+			RETVAL_STRING(Z_STRVAL_P(result));
 		} else if (retval_type == IS_LONG) {
 			RETVAL_LONG(Z_LVAL_P(result));
-		} else if (retval_type == IS_BOOL) {
+		} else if (retval_type == IS_TRUE||retval_type == IS_FALSE) {
 			RETVAL_BOOL(Z_BVAL_P(result));
 		} else {
 			RETVAL_ZVAL(result, 1, 0);
@@ -235,7 +232,7 @@ PHP_METHOD(protocolbuffers_field_descriptor, getName)
 */
 PHP_METHOD(protocolbuffers_field_descriptor, isExtension)
 {
-	php_protocolbuffers_field_descriptor_get_property(INTERNAL_FUNCTION_PARAM_PASSTHRU, ZEND_STRS("extension"), IS_BOOL);
+	php_protocolbuffers_field_descriptor_get_property(INTERNAL_FUNCTION_PARAM_PASSTHRU, ZEND_STRS("extension"), IS_TRUE);
 }
 /* }}} */
 
