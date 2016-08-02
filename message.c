@@ -56,7 +56,7 @@ static int json_serializable_checked = 0;
 		int __err;\
 		\
 		__ce  = Z_OBJCE_P(instance);\
-		__err = php_protocolbuffers_get_scheme_container(__ce->name, __ce->name_length, container TSRMLS_CC);\
+		__err = php_protocolbuffers_get_scheme_container(ZSTR_VAL(__ce->name), ZSTR_LEN(__ce->name), container TSRMLS_CC);\
 		if (__err) {\
 			if (EG(exception)) {\
 				return;\
@@ -82,20 +82,16 @@ static void php_protocolbuffers_message_free_storage(php_protocolbuffers_message
 	efree(object);
 }
 
-zend_object_value php_protocolbuffers_message_new(zend_class_entry *ce TSRMLS_DC)
+zend_object *php_protocolbuffers_message_new(zend_class_entry *ce TSRMLS_DC)
 {
-	zend_object_value retval;
-
 	PHP_PROTOCOLBUFFERS_STD_CREATE_OBJECT(php_protocolbuffers_message);
 
-	object->max    = 0;
-	object->offset = 0;
-	MAKE_STD_ZVAL(object->container);
-	ZVAL_NULL(object->container);
+	intern->max    = 0;
+	intern->offset = 0;
+	ZVAL_NULL(intern->container);
 
-	retval.handlers = &php_protocolbuffers_message_object_handlers;
 
-	return retval;
+	return &intern->zo;
 }
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_protocolbuffers_message___construct, 0, 0, 0)
@@ -757,8 +753,8 @@ static void php_protocolbuffers_message_has(INTERNAL_FUNCTION_PARAMETERS, zval *
 	int n_len = 0;
 	HashTable *htt = NULL;
 	php_protocolbuffers_scheme *scheme;
-	zval **e = NULL;
-
+	zval *e = NULL;
+	zend_string n_key = NULL;
 	scheme = php_protocolbuffers_message_get_scheme_by_name(container, name, name_len, name2, name2_len);
 	if (scheme == NULL) {
 		zend_throw_exception_ex(spl_ce_InvalidArgumentException, 0 TSRMLS_CC, "%s does not find", name);
@@ -771,11 +767,12 @@ static void php_protocolbuffers_message_has(INTERNAL_FUNCTION_PARAMETERS, zval *
 	}
 
 	php_protocolbuffers_message_get_hash_table_by_container(container, scheme, instance, &htt, &n, &n_len TSRMLS_CC);
-	if (zend_hash_find(htt, n, n_len, (void **)&e) == SUCCESS) {
-		if (Z_TYPE_PP(e) == IS_NULL) {
+	n_key = zend_string_init(n,n_len,0);
+	if ((e=zend_hash_find(htt, n_key)) != NULL) {
+		if (Z_TYPE_P(e) == IS_NULL) {
 			RETURN_FALSE;
 		} else if (Z_TYPE_PP(e) == IS_ARRAY) {
-			if (zend_hash_num_elements(Z_ARRVAL_PP(e)) < 1) {
+			if (zend_hash_num_elements(Z_ARRVAL_P(e)) < 1) {
 				RETURN_FALSE;
 			} else {
 				RETURN_TRUE;
@@ -1216,16 +1213,16 @@ PHP_METHOD(protocolbuffers_message, __call)
 			zval **tmp = NULL;
 			if (params != NULL && Z_TYPE_P(params) == IS_ARRAY && zend_hash_num_elements(Z_ARRVAL_P(params)) > 0) {
 				zend_hash_get_current_data(Z_ARRVAL_P(params), (void **)&tmp);
-				php_protocolbuffers_message_get(INTERNAL_FUNCTION_PARAM_PASSTHRU, instance, container, buf.c, buf.len, buf2.c, buf2.len, *tmp);
+				php_protocolbuffers_message_get(INTERNAL_FUNCTION_PARAM_PASSTHRU, instance, container, ZSTR_VAL(buf.s), ZSTR_LEN(buf.s), ZSTR_VAL(buf2.s), ZSTR_LEN(buf2.s), *tmp);
 			} else {
-				php_protocolbuffers_message_get(INTERNAL_FUNCTION_PARAM_PASSTHRU, instance, container, buf.c, buf.len, buf2.c, buf2.len, NULL);
+				php_protocolbuffers_message_get(INTERNAL_FUNCTION_PARAM_PASSTHRU, instance, container, ZSTR_VAL(buf.s), ZSTR_LEN(buf.s), ZSTR_VAL(buf2.s), ZSTR_LEN(buf2.s), NULL);
 			}
 		}
 		break;
 		case MAGICMETHOD_MUTABLE:
 		{
-			php_protocolbuffers_message_get(INTERNAL_FUNCTION_PARAM_PASSTHRU, instance, container, buf.c, buf.len, buf2.c, buf2.len, NULL);
-			php_protocolbuffers_message_set(INTERNAL_FUNCTION_PARAM_PASSTHRU, instance, container, buf.c, buf.len, buf2.c, buf2.len, return_value);
+			php_protocolbuffers_message_get(INTERNAL_FUNCTION_PARAM_PASSTHRU, instance, container, ZSTR_VAL(buf.s), ZSTR_LEN(buf.s), ZSTR_VAL(buf2.s), ZSTR_LEN(buf2.s), NULL);
+			php_protocolbuffers_message_set(INTERNAL_FUNCTION_PARAM_PASSTHRU, instance, container, ZSTR_VAL(buf.s), ZSTR_LEN(buf.s), ZSTR_VAL(buf2.s), ZSTR_LEN(buf2.s), return_value);
 		}
 		break;
 		case MAGICMETHOD_SET:
@@ -1233,7 +1230,7 @@ PHP_METHOD(protocolbuffers_message, __call)
 			zval **tmp = NULL;
 
 			zend_hash_get_current_data(Z_ARRVAL_P(params), (void **)&tmp);
-			php_protocolbuffers_message_set(INTERNAL_FUNCTION_PARAM_PASSTHRU, instance, container, buf.c, buf.len, buf2.c, buf2.len, *tmp);
+			php_protocolbuffers_message_set(INTERNAL_FUNCTION_PARAM_PASSTHRU, instance, container, ZSTR_VAL(buf.s), ZSTR_LEN(buf.s), ZSTR_VAL(buf2.s), ZSTR_LEN(buf2.s), *tmp);
 		}
 		break;
 		case MAGICMETHOD_APPEND:
@@ -1241,13 +1238,13 @@ PHP_METHOD(protocolbuffers_message, __call)
 			zval **tmp = NULL;
 
 			zend_hash_get_current_data(Z_ARRVAL_P(params), (void **)&tmp);
-			php_protocolbuffers_message_append(INTERNAL_FUNCTION_PARAM_PASSTHRU, instance, container, buf.c, buf.len, buf2.c, buf2.len, *tmp);
+			php_protocolbuffers_message_append(INTERNAL_FUNCTION_PARAM_PASSTHRU, instance, container, ZSTR_VAL(buf.s), ZSTR_LEN(buf.s), ZSTR_VAL(buf2.s), ZSTR_LEN(buf2.s), *tmp);
 		}
 		break;
 		case MAGICMETHOD_CLEAR:
-			php_protocolbuffers_message_clear(INTERNAL_FUNCTION_PARAM_PASSTHRU, instance, container, buf.c, buf.len, buf2.c, buf2.len);
+			php_protocolbuffers_message_clear(INTERNAL_FUNCTION_PARAM_PASSTHRU, instance, container, ZSTR_VAL(buf.s), ZSTR_LEN(buf.s), ZSTR_VAL(buf2.s), ZSTR_LEN(buf2.s));
 		case MAGICMETHOD_HAS:
-			php_protocolbuffers_message_has(INTERNAL_FUNCTION_PARAM_PASSTHRU, instance, container, buf.c, buf.len, buf2.c, buf2.len);
+			php_protocolbuffers_message_has(INTERNAL_FUNCTION_PARAM_PASSTHRU, instance, container, ZSTR_VAL(buf.s), ZSTR_LEN(buf.s), ZSTR_VAL(buf2.s), ZSTR_LEN(buf2.s));
 		break;
 	}
 
@@ -1376,7 +1373,7 @@ PHP_METHOD(protocolbuffers_message, getExtension)
 	}
 
 	ce = Z_OBJCE_P(instance);
-	if (!php_protocolbuffers_extension_registry_get_registry(registry, ce->name, ce->name_length, &extension_registry TSRMLS_CC)) {
+	if (!php_protocolbuffers_extension_registry_get_registry(registry, ZSTR_VAL(ce->name), ZSTR_LEN(ce->name), &extension_registry TSRMLS_CC)) {
 		goto err;
 	}
 
@@ -1455,7 +1452,7 @@ PHP_METHOD(protocolbuffers_message, hasExtension)
 
 	ce = Z_OBJCE_P(instance);
 
-	if (!php_protocolbuffers_extension_registry_get_registry(registry, ce->name, ce->name_length, &extension_registry TSRMLS_CC)) {
+	if (!php_protocolbuffers_extension_registry_get_registry(registry, ZSTR_VAL(ce->name), ZSTR_LEN(ce->name), &extension_registry TSRMLS_CC)) {
 		goto err;
 	}
 
@@ -1473,7 +1470,7 @@ PHP_METHOD(protocolbuffers_message, hasExtension)
 		n = name;
 		n_len = name_len;
 		htt = Z_ARRVAL_P(b);
-		n_key = zend_string_init(n,n_len);
+		n_key = zend_string_init(n,n_len,0);
 	} else {
 		htt = Z_OBJPROP_P(instance);
 		n_key=zend_mangle_property_name((char*)"*", 1, (char*)name, name_len+1, 0);
@@ -1519,7 +1516,7 @@ PHP_METHOD(protocolbuffers_message, setExtension)
 
 	ce = Z_OBJCE_P(instance);
 
-	if (!php_protocolbuffers_extension_registry_get_registry(registry, ce->name, ce->name_length, &extension_registry TSRMLS_CC)) {
+	if (!php_protocolbuffers_extension_registry_get_registry(registry, ZSTR_VAL(ce->name), ZSTR_LEN(ce->name), &extension_registry TSRMLS_CC)) {
 		goto err;
 	}
 
@@ -1578,7 +1575,7 @@ PHP_METHOD(protocolbuffers_message, clearExtension)
 
 	ce = Z_OBJCE_P(instance);
 
-	if (!php_protocolbuffers_extension_registry_get_registry(registry, ce->name, ce->name_length, &extension_registry TSRMLS_CC)) {
+	if (!php_protocolbuffers_extension_registry_get_registry(registry, ZSTR_VAL(ce->name), ZSTR_LEN(ce->name), &extension_registry TSRMLS_CC)) {
 		goto err;
 	}
 
@@ -1683,13 +1680,13 @@ PHP_METHOD(protocolbuffers_message, jsonSerialize)
 	zend_throw_exception_ex(spl_ce_RuntimeException, 0 TSRMLS_CC, "JsonSerializable does not support on this version");
 #else
 	zval *instance = getThis(), *result = NULL;
-	zend_class_entry **json;
+	zend_class_entry *json;
 
 	if (json_serializable_checked == 0) {
 		/* checks JsonSerializable class (for json dynamic module)*/
-		zend_string *JsonSerializable_key = zend_sgring("JsonSerializable", sizeof("JsonSerializable")-1,0);
+		zend_string *JsonSerializable_key = zend_string_init("JsonSerializable", sizeof("JsonSerializable")-1,0);
 		if ((json=zend_lookup_class(JsonSerializable_key)) != NULL) {
-			if (!instanceof_function(php_protocol_buffers_message_class_entry, *json TSRMLS_CC)) {
+			if (!instanceof_function(php_protocol_buffers_message_class_entry, json TSRMLS_CC)) {
 				zend_throw_exception_ex(spl_ce_RuntimeException, 0 TSRMLS_CC, "JsonSerializable does not support on this version (probably json module doesn't load)");
 				return;
 			}

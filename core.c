@@ -100,9 +100,9 @@ int php_protocolbuffers_get_scheme_container(const char *klass, size_t klass_len
 
 int php_protocolbuffers_get_scheme_container_ex(const char *klass, size_t klass_len, int throws_exception, php_protocolbuffers_scheme_container **result TSRMLS_DC)
 {
-	php_protocolbuffers_scheme_container *container, **cn;
-
-	if (zend_hash_find(PBG(messages), (char*)klass, klass_len, (void **)&cn) != SUCCESS) {
+	php_protocolbuffers_scheme_container *container, *cn;
+	zend_string *klass_key = zend_string_init(klass,klass_len,0);
+	if ((cn=zend_hash_find(PBG(messages), klass_key)) == NULL) {
 		zval *ret = NULL;
 		zend_class_entry *ce = NULL;
 		zend_string *klass_name = zend_string_init((char*)klass, klass_len,0);
@@ -125,7 +125,7 @@ int php_protocolbuffers_get_scheme_container_ex(const char *klass, size_t klass_
 				if (entry == php_protocol_buffers_descriptor_class_entry) {
 					desc = PHP_PROTOCOLBUFFERS_GET_OBJECT(php_protocolbuffers_descriptor, ret);
 					desc->free_container = 1;
-					zend_hash_add(PBG(messages), (char*)klass, klass_len, (void**)&desc->container, sizeof(php_protocolbuffers_scheme_container*), NULL);
+					zend_hash_add(PBG(messages), klass_key, desc->container);
 				} else {
 					zend_throw_exception_ex(php_protocol_buffers_invalid_protocolbuffers_exception_class_entry, 0 TSRMLS_CC, "getDescriptor returns unexpected class");
 					if (ret != NULL) {

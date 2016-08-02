@@ -6,7 +6,7 @@
 PHP_METHOD(protocolbuffers_enum_value_descriptor, __construct)
 {
 	zval *instance = getThis();
-	zval *value, **element, *tmp;
+	zval *value, *element, *tmp;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,
 		"a", &value) == FAILURE) {
@@ -19,12 +19,14 @@ PHP_METHOD(protocolbuffers_enum_value_descriptor, __construct)
 		return;
 	}
 
-	if (zend_hash_find(Z_ARRVAL_P(value), ZEND_STRS("name"), (void **)&element) == SUCCESS) {
+	zend_string *name_key =zend_string_init(ZEND_STRS("name"),0);
+	if ((element=zend_hash_find(Z_ARRVAL_P(value), name_key)) != NULL) {
 		MAKE_STD_ZVAL(tmp);
 		ZVAL_ZVAL(tmp, *element, 1, 0);
  		php_protocolbuffers_set_protected_property(instance, ZEND_STRS("name"), tmp TSRMLS_CC);
 	}
-	if (zend_hash_find(Z_ARRVAL_P(value), ZEND_STRS("value"), (void **)&element) == SUCCESS) {
+	zend_string *value_key =zend_string_init(ZEND_STRS("value"),0);
+	if ((element=zend_hash_find(Z_ARRVAL_P(value), value_key)) != NULL) {
 		MAKE_STD_ZVAL(tmp);
 		ZVAL_ZVAL(tmp, *element, 1, 0);
  		php_protocolbuffers_set_protected_property(instance, ZEND_STRS("value"), tmp TSRMLS_CC);
