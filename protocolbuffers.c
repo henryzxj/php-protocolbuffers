@@ -361,7 +361,7 @@ PHP_RSHUTDOWN_FUNCTION(protocolbuffers)
 			php_protocolbuffers_scheme_container *element;
 
 			for(zend_hash_internal_pointer_reset_ex(PBG(messages), &pos);
-							(element = zend_hash_get_current_data_ex(PBG(messages), &pos)) != NULL;
+							(element = (php_protocolbuffers_scheme_container *)zend_hash_get_current_data_ex(PBG(messages), &pos)) != NULL;
 							zend_hash_move_forward_ex(PBG(messages), &pos)
 			) {
 				for (i = 0; i < (element)->size; i++) {

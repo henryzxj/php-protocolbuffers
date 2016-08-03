@@ -37,7 +37,7 @@ static void php_protocolbuffers_helper_debug_zval(zval **value TSRMLS_DC)
 	php_printf("{\n");
 	php_printf("  address: 0x%lx,\n", (unsigned long)val);
 	php_printf("  type: %d,\n", Z_TYPE_P(val));
-	php_printf("  is_ref: %d,\n", PZVAL_IS_REF(val));
+	php_printf("  is_ref: %d,\n", Z_ISREF_P(val));
 	php_printf("  refcount: %d,\n", Z_REFCOUNT_P(*value));
 	php_printf("  value: {\n");
 	php_printf("    lval: %ld,\n", val->value.lval);

@@ -30,7 +30,11 @@
 
 #include "protocolbuffers.h"
 #include "message.h"
-#include "ext/standard/php_smart_string.h"
+#if PHP_MAJOR_VERSION < 7
+#include "ext/standard/php_smart_str.h"
+#else
+#include "zend_smart_str.h"
+#endif
 #include "unknown_field_set.h"
 #include "extension_registry.h"
 
@@ -178,7 +182,7 @@ static void php_protocolbuffers_get_hash(php_protocolbuffers_scheme_container *c
 		n     = container->single_property_name;
 		n_len = container->single_property_name_len;
 		zend_string *n_key = zend_string_init(n,n_len,0);
-		if ((htt=zend_hash_find(Z_OBJPROP_P(object), n_key)) == NULL) {
+		if ((htt=(HashTable *)zend_hash_find(Z_OBJPROP_P(object), n_key)) == NULL) {
 			return;
 		}
 
@@ -306,7 +310,7 @@ static void php_protocolbuffers_message_merge_from(php_protocolbuffers_scheme_co
 			}
 			break;
 			default:
-				zend_error(E_NOTICE, "mergeFrom: zval type %d is not supported.", Z_TYPE_PP(tmp));
+				zend_error(E_NOTICE, "mergeFrom: zval type %d is not supported.", Z_TYPE_P(tmp));
 			}
 		}
 
@@ -413,7 +417,7 @@ static void php_protocolbuffers_message_get_hash_table_by_container(php_protocol
 		n     = container->single_property_name;
 		n_len = container->single_property_name_len;
 		n_key = zend_string_init(n,n_len,0);
-		if ((htt=zend_hash_find(Z_OBJPROP_P(instance), n_key)) == NULL) {
+		if ((htt=(HashTable *)zend_hash_find(Z_OBJPROP_P(instance), n_key)) == NULL) {
 			return;
 		}
 	} else {
@@ -461,7 +465,7 @@ static void php_protocolbuffers_message_get(INTERNAL_FUNCTION_PARAMETERS, zval *
 				RETURN_ZVAL(value, 1, 0);
 			}
 		} else {
-			if (scheme->ce != NULL && Z_TYPE_PP(e) == IS_NULL) {
+			if (scheme->ce != NULL && Z_TYPE_P(e) == IS_NULL) {
 				zval *tmp;
 //				MAKE_STD_ZVAL(tmp);
 				object_init_ex(tmp, scheme->ce);
@@ -544,7 +548,7 @@ static void php_protocolbuffers_message_set(INTERNAL_FUNCTION_PARAMETERS, zval *
 						object_init_ex(child, scheme->ce);
 						php_protocolbuffers_properties_init(child, scheme->ce TSRMLS_CC);
 
-						zend_call_method_with_1_params(&child, scheme->ce, NULL, ZEND_CONSTRUCTOR_FUNC_NAME, NULL, param);
+						zend_call_method_with_1_params(child, scheme->ce, NULL, ZEND_CONSTRUCTOR_FUNC_NAME, NULL, param);
 						zval_ptr_dtor(param);
 
 						m = PHP_PROTOCOLBUFFERS_GET_OBJECT(php_protocolbuffers_message, child);
@@ -569,7 +573,7 @@ static void php_protocolbuffers_message_set(INTERNAL_FUNCTION_PARAMETERS, zval *
 
 				object_init_ex(tmp, scheme->ce);
 				php_protocolbuffers_properties_init(tmp, scheme->ce TSRMLS_CC);
-				zend_call_method_with_1_params(&tmp, scheme->ce, NULL, ZEND_CONSTRUCTOR_FUNC_NAME, NULL, param);
+				zend_call_method_with_1_params(tmp, scheme->ce, NULL, ZEND_CONSTRUCTOR_FUNC_NAME, NULL, param);
 				zval_ptr_dtor(param);
 
 				value = tmp;
@@ -772,7 +776,7 @@ static void php_protocolbuffers_message_has(INTERNAL_FUNCTION_PARAMETERS, zval *
 	if ((e=zend_hash_find(htt, n_key)) != NULL) {
 		if (Z_TYPE_P(e) == IS_NULL) {
 			RETURN_FALSE;
-		} else if (Z_TYPE_PP(e) == IS_ARRAY) {
+		} else if (Z_TYPE_P(e) == IS_ARRAY) {
 			if (zend_hash_num_elements(Z_ARRVAL_P(e)) < 1) {
 				RETURN_FALSE;
 			} else {
@@ -1062,7 +1066,7 @@ PHP_METHOD(protocolbuffers_message, current)
 			hash = Z_ARRVAL_P(c);
 		}
 
-		hash = Z_OBJPROP_PP(c);
+		hash = Z_OBJPROP_P(c);
 	}
 	name_key = zend_string_init(name,name_len,0);
 	if ((tmp=zend_hash_find(hash, name_key)) != NULL) {

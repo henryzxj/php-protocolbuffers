@@ -80,7 +80,7 @@ static int _json_serializer_repeated_begin(
 	zval **result = (zval**)opaque;
 	zval *outer = NULL;
 
-	MAKE_STD_ZVAL(outer);
+//	MAKE_STD_ZVAL(outer);
 	array_init(outer);
 
 	*result = outer;
@@ -366,7 +366,7 @@ static int _json_serializer_message(
 	zval *result = (zval*)opaque;
 	zval *tmp;
 
-	MAKE_STD_ZVAL(tmp);
+//	MAKE_STD_ZVAL(tmp);
 	array_init(tmp);
 
 	php_protocolbuffers_encode_jsonserialize(value, child_container, 0,  &tmp TSRMLS_CC);
@@ -704,7 +704,7 @@ static void php_protocolbuffers_json_encode_element(php_protocolbuffers_scheme_c
 						continue;
 					}
 
-					php_protocolbuffers_json_encode_value(element, container, scheme, ser, throws_exception, (void*)outer TSRMLS_CC);
+					php_protocolbuffers_json_encode_value(&element, container, scheme, ser, throws_exception, (void*)outer TSRMLS_CC);
 				}
 
 				ser->serialize_repeated_end(result, scheme, container, outer TSRMLS_CC);

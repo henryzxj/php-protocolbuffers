@@ -53,12 +53,11 @@ static int php_protocolbuffers_field_descriptor_process_params(zval **zv TSRMLS_
 {\
 	name_key =zend_mangle_property_name((char*)"*", 1, (char*)key, key_length, 0);\
 	\
-	MAKE_STD_ZVAL(value);\
 	if (Z_TYPE_P(*zv) != IS_TRUE&&Z_TYPE_P(*zv) != IS_FALSE) {\
 		convert_to_boolean(*zv);\
 	}\
 	\
-	ZVAL_BOOL(value, Z_BVAL_PP(zv));\
+	ZVAL_BOOL(value, Z_BVAL_P(*zv));\
 	zend_hash_update(Z_OBJPROP_P(instance), name_key, value);\
 	efree(name);\
 }
@@ -82,7 +81,7 @@ static int php_protocolbuffers_field_descriptor_process_params(zval **zv TSRMLS_
 			}
 
 			name_key = zend_mangle_property_name((char*)"*", 1, (char*)key, key_length, 0);
-			MAKE_STD_ZVAL(value);
+//			MAKE_STD_ZVAL(value);
 			ZVAL_LONG(value, Z_LVAL_P(*zv));
 			zend_hash_update(Z_OBJPROP_P(instance), name_key, value);
 			efree(name);
@@ -100,21 +99,21 @@ static int php_protocolbuffers_field_descriptor_process_params(zval **zv TSRMLS_
 		} else if (strcmp(key, "message") == 0 && Z_TYPE_P(*zv) == IS_STRING) {
 			name_key = zend_mangle_property_name((char*)"*", 1, (char*)key, key_length, 0);
 
-			MAKE_STD_ZVAL(value);
+//			MAKE_STD_ZVAL(value);
 			ZVAL_STRING(value, Z_STRVAL_P(*zv));
 			zend_hash_update(Z_OBJPROP_P(instance), name_key, value);
 			efree(name);
 		} else if (strcmp(key, "name") == 0) {
 			name_key=zend_mangle_property_name((char*)"*", 1, (char*)key, key_length, 0);
 
-			MAKE_STD_ZVAL(value);
+//			MAKE_STD_ZVAL(value);
 			ZVAL_STRING(value, Z_STRVAL_P(*zv));
 			zend_hash_update(Z_OBJPROP_P(instance), name_key, value);
 			efree(name);
 		} else if (strcmp(key, "default") == 0) {
 			name_key=zend_mangle_property_name( (char*)"*", 1, (char*)key, key_length, 0);
 
-			MAKE_STD_ZVAL(value);
+//			MAKE_STD_ZVAL(value);
 			ZVAL_ZVAL(value, *zv, 1, 0);
 			zend_hash_update(Z_OBJPROP_P(instance), name_key, value);
 			efree(name);

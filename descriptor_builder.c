@@ -372,23 +372,23 @@ static void php_protocolbuffers_build_field_descriptor(php_protocolbuffers_descr
 		return;
 	}
 
-	MAKE_STD_ZVAL(arrval);
+//	MAKE_STD_ZVAL(arrval);
 	array_init(arrval);
 	for (n = 0; n < descriptor->container->size; n++) {
 		ischeme = &(descriptor->container->scheme[n]);
 
-		MAKE_STD_ZVAL(tmp);
+//		MAKE_STD_ZVAL(tmp);
 		object_init_ex(tmp, php_protocol_buffers_field_descriptor_class_entry);
 
-		MAKE_STD_ZVAL(value);
+//		MAKE_STD_ZVAL(value);
 		ZVAL_STRING(value, ischeme->name);
 		php_protocolbuffers_set_protected_property(tmp, ZEND_STRS("name"), value TSRMLS_CC);
 
-		MAKE_STD_ZVAL(value);
+//		MAKE_STD_ZVAL(value);
 		ZVAL_LONG(value, ischeme->type);
 		php_protocolbuffers_set_protected_property(tmp, ZEND_STRS("type"), value TSRMLS_CC);
 
-		MAKE_STD_ZVAL(value);
+//		MAKE_STD_ZVAL(value);
 		ZVAL_BOOL(value, ischeme->is_extension);
 		php_protocolbuffers_set_protected_property(tmp, ZEND_STRS("extension"), value TSRMLS_CC);
 
@@ -409,24 +409,24 @@ PHP_METHOD(protocolbuffers_descriptor_builder, __construct)
 	ALLOC_HASHTABLE(properties);
 	zend_hash_init(properties, 0, NULL, ZVAL_PTR_DTOR, 0);
 
-	MAKE_STD_ZVAL(tmp);
+//	MAKE_STD_ZVAL(tmp);
 	ZVAL_NULL(tmp);
 	zend_string *name_key = zend_string_init("name", sizeof("name"),0);
 	zend_hash_update(properties, name_key,tmp);
 
-	MAKE_STD_ZVAL(tmp);
+//	MAKE_STD_ZVAL(tmp);
 	array_init(tmp);
 	zend_string *fields_key = zend_string_init("fields", sizeof("fields"),0);
 	zend_hash_update(properties, fields_key, tmp);
 
-	MAKE_STD_ZVAL(tmp);
+//	MAKE_STD_ZVAL(tmp);
 	object_init_ex(tmp, php_protocol_buffers_message_options_class_entry);
 	php_protocolbuffers_message_options_init_properties(tmp TSRMLS_CC);
 
 	zend_string *options_key = zend_string_init("options", sizeof("options"),0);
 	zend_hash_update(properties, options_key, tmp);
 
-	MAKE_STD_ZVAL(tmp);
+//	MAKE_STD_ZVAL(tmp);
 	array_init(tmp);
 	zend_string *extension_ranges_key = zend_string_init("extension_ranges", sizeof("extension_ranges"),0);
 	zend_hash_update(properties, extension_ranges_key, tmp);
@@ -511,7 +511,7 @@ PHP_METHOD(protocolbuffers_descriptor_builder, build)
 	zval *result, *name, *fields = NULL;
 	php_protocolbuffers_descriptor *descriptor;
 
-	MAKE_STD_ZVAL(result);
+//	MAKE_STD_ZVAL(result);
 	object_init_ex(result, php_protocol_buffers_descriptor_class_entry);
 	php_protocolbuffers_descriptor_properties_init(result TSRMLS_CC);
 	descriptor = PHP_PROTOCOLBUFFERS_GET_OBJECT(php_protocolbuffers_descriptor, result);
@@ -605,11 +605,11 @@ PHP_METHOD(protocolbuffers_descriptor_builder, addExtensionRange)
 	zend_string *extension_ranges_key=zend_string_init(ZEND_STRS("extension_ranges"),0);
 	if ((extension_ranges=zend_hash_find(Z_OBJPROP_P(instance), extension_ranges_key)) != NULL) {
 		zval *array = NULL;
-		MAKE_STD_ZVAL(array);
+//		MAKE_STD_ZVAL(array);
 		array_init(array);
 
-		MAKE_STD_ZVAL(z_begin);
-		MAKE_STD_ZVAL(z_end);
+//		MAKE_STD_ZVAL(z_begin);
+//		MAKE_STD_ZVAL(z_end);
 		ZVAL_LONG(z_begin, begin);
 		ZVAL_LONG(z_end, end);
 

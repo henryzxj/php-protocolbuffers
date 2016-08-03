@@ -39,7 +39,7 @@ int php_protocolbuffers_message_options_init_properties(zval *object TSRMLS_DC)
 	ALLOC_HASHTABLE(properties);
 	zend_hash_init(properties, 0, NULL, ZVAL_PTR_DTOR, 0);
 
-	MAKE_STD_ZVAL(tmp);
+//	MAKE_STD_ZVAL(tmp);
 	array_init(tmp);
 	zend_string *extensions_key = zend_string_init("extensions", sizeof("extensions"),0);
 	zend_hash_update(properties, extensions_key, tmp);
@@ -72,7 +72,7 @@ PHP_METHOD(protocolbuffers_message_options, getExtension)
 		if (strcmp(name, "php") == 0) {
 			zval *obj;
 
-			MAKE_STD_ZVAL(obj);
+//			MAKE_STD_ZVAL(obj);
 			object_init_ex(obj, php_protocol_buffers_php_message_options_class_entry);
 
 			zend_hash_update(Z_ARRVAL_P(options), name_key, obj);

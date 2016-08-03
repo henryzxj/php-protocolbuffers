@@ -40,7 +40,7 @@ zval *php_protocolbuffers_extension_registry_get_instance(TSRMLS_D)
 	if (PBG(extension_registry) == NULL) {
 		zval *extension_registry = NULL;
 
-		MAKE_STD_ZVAL(extension_registry);
+//		MAKE_STD_ZVAL(extension_registry);
 		object_init_ex(extension_registry, php_protocol_buffers_extension_registry_class_entry);
 		PBG(extension_registry) = extension_registry;
 	}
@@ -219,8 +219,8 @@ PHP_METHOD(protocolbuffers_extension_registry, add)
 
 //		if (zend_hash_find(Z_ARRVAL_PP(bucket), ZEND_STRS("index"), (void **)&bucket2) == SUCCESS) {
 		zend_string *index_name = zend_string_init(ZEND_STRS("index"),0);
-		if ((bucket2=zend_hash_find(Z_ARRVAL_PP(bucket), index_name)) != NULL) {
-			if (zend_hash_index_exists(Z_ARRVAL_PP(bucket), extension)) {
+		if ((bucket2=zend_hash_find(Z_ARRVAL_P(bucket), index_name)) != NULL) {
+			if (zend_hash_index_exists(Z_ARRVAL_P(bucket), extension)) {
 				zend_throw_exception_ex(spl_ce_RuntimeException, 0 TSRMLS_CC, "can't override specified extension number: already exists");
 				return;
 			}

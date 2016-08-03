@@ -296,7 +296,7 @@ typedef struct{
 	zend_object_std_init(&intern->zo, ce TSRMLS_CC);\
 	object_properties_init(&intern->zo, ce);\
 	STRUCT_NAME##_object_handlers.offset = XtOffsetOf(STRUCT_NAME, zo);\
-	STRUCT_NAME##_object_handlers.free_obj = STRUCT_NAME##_free_storage;\
+	STRUCT_NAME##_object_handlers.free_obj = (zend_object_free_obj_t)STRUCT_NAME##_free_storage;\
 	intern->zo.handlers = &STRUCT_NAME##_object_handlers;
 
 //#define PHP_PROTOCOLBUFFERS_GET_OBJECT(STRUCT_NAME, OBJECT) (STRUCT_NAME *)zend_object_store_get_object(OBJECT TSRMLS_CC);

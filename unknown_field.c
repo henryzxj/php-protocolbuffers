@@ -43,12 +43,12 @@ void php_protocolbuffers_unknown_field_properties_init(zval *object TSRMLS_DC)
 	ALLOC_HASHTABLE(properties);
 	zend_hash_init(properties, 0, NULL, ZVAL_PTR_DTOR, 0);
 
-	MAKE_STD_ZVAL(number);
+//	MAKE_STD_ZVAL(number);
 	ZVAL_NULL(number);
 	zend_string *number_key = zend_string_init("number", sizeof("number"), 0);
 	zend_hash_update(properties, number_key,number);
 
-	MAKE_STD_ZVAL(type);
+//	MAKE_STD_ZVAL(type);
 	ZVAL_NULL(type);
 	zend_string *type_key = zend_string_init("type", sizeof("type"), 0);
 	zend_hash_update(properties, type_key, type);
@@ -72,9 +72,9 @@ static HashTable *php_protocolbuffers_unknown_field_get_debug_info(zval *obj, in
 	ALLOC_HASHTABLE(ht);
 	ZEND_INIT_SYMTABLE_EX(ht, zend_hash_num_elements(props), 0);
 
-	MAKE_STD_ZVAL(number);
-	MAKE_STD_ZVAL(type);
-	MAKE_STD_ZVAL(count);
+//	MAKE_STD_ZVAL(number);
+//	MAKE_STD_ZVAL(type);
+//	MAKE_STD_ZVAL(count);
 
 	ZVAL_LONG(number, field->number);
 	ZVAL_LONG(type, field->type);
@@ -118,7 +118,7 @@ void php_protocolbuffers_unknown_field_set_number(zval *instance, int number TSR
 	if ((result=zend_hash_find(Z_OBJPROP_P(instance), name_key)) != NULL) {
 		zval *tmp;
 
-		MAKE_STD_ZVAL(tmp);
+//		MAKE_STD_ZVAL(tmp);
 		ZVAL_LONG(tmp, number);
 		zend_hash_update(Z_OBJPROP_P(instance), name_key, tmp);
 		field->number = number;
@@ -138,7 +138,7 @@ void php_protocolbuffers_unknown_field_set_type(zval *instance, int type TSRMLS_
 	if ((result=zend_hash_find(Z_OBJPROP_P(instance), name_key)) != NULL) {
 		zval *tmp;
 
-		MAKE_STD_ZVAL(tmp);
+//		MAKE_STD_ZVAL(tmp);
 		ZVAL_LONG(tmp, type);
 		zend_hash_update(Z_OBJPROP_P(instance), name_key,tmp);
 		field->type = type;
@@ -154,7 +154,7 @@ static void php_protocolbuffers_unknown_field_free_storage(php_protocolbuffers_u
 	unknown_value *element;
 
 	for(zend_hash_internal_pointer_reset_ex(object->ht, &pos);
-						(element=zend_hash_get_current_data_ex(object->ht, &pos)) != NULL;
+						(element=(unknown_value *)zend_hash_get_current_data_ex(object->ht, &pos)) != NULL;
 						zend_hash_move_forward_ex(object->ht, &pos)
 		) {
 		switch (object->type) {
@@ -213,13 +213,13 @@ static void php_protocolbuffers_unknown_field_get_as(INTERNAL_FUNCTION_PARAMETER
 		}
 	}
 
-	MAKE_STD_ZVAL(result);
+//	MAKE_STD_ZVAL(result);
 	array_init(result);
 
 	for(zend_hash_internal_pointer_reset_ex(field->ht, &pos);
-						(element=zend_hash_get_current_data_ex(field->ht, &pos)) != NULL;
+						(element=(unknown_value *)zend_hash_get_current_data_ex(field->ht, &pos)) != NULL;
 						zend_hash_move_forward_ex(field->ht, &pos)) {
-		MAKE_STD_ZVAL(tmp);
+//		MAKE_STD_ZVAL(tmp);
 
 		if (type == WIRETYPE_LENGTH_DELIMITED) {
 			ZVAL_STRINGL(tmp, (const char*)(element)->buffer.val,  (element)->buffer.len);

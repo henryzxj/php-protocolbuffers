@@ -15,7 +15,7 @@ PHP_METHOD(protocolbuffers_enum_descriptor_builder, __construct)
 {
 	zval *fields;
 
-	MAKE_STD_ZVAL(fields);
+//	MAKE_STD_ZVAL(fields);
 	array_init(fields);
 
 	php_protocolbuffers_set_protected_property(getThis(), ZEND_STRS("values"), fields TSRMLS_CC);
@@ -68,10 +68,10 @@ PHP_METHOD(protocolbuffers_enum_descriptor_builder, build)
 	int property_len;
 	HashPosition pos;
 
-	MAKE_STD_ZVAL(result);
+//	MAKE_STD_ZVAL(result);
 	object_init_ex(result, php_protocol_buffers_enum_descriptor_class_entry);
 
-	MAKE_STD_ZVAL(container);
+//	MAKE_STD_ZVAL(container);
 	array_init(container);
 
 	zend_string *property_key = zend_mangle_property_name((char*)"*", 1, (char*)ZEND_STRS("values"), 0);
@@ -80,7 +80,7 @@ PHP_METHOD(protocolbuffers_enum_descriptor_builder, build)
 		while ((entry=zend_hash_get_current_data_ex(Z_ARRVAL_P(fields), &pos)) != NULL) {
 			zval *tmp = NULL;
 
-			MAKE_STD_ZVAL(tmp);
+//			MAKE_STD_ZVAL(tmp);
 
 			php_protocolbuffers_read_protected_property(entry, ZEND_STRS("name"), &key TSRMLS_CC);
 			php_protocolbuffers_read_protected_property(entry, ZEND_STRS("value"), &value TSRMLS_CC);

@@ -108,4 +108,17 @@ static inline zval* pb_zend_read_property(zend_class_entry *class_ptr, zval *obj
     return zend_read_property(class_ptr, obj, s, len, silent, &rv);
 }
 
+#define pb_inline inline __attribute__((always_inline))
+static pb_inline int Z_BVAL_P(zval *v)
+{
+    if (Z_TYPE_P(v) == IS_TRUE)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
 #endif /* PHP_PROTOCOLBUFFERS_H */
