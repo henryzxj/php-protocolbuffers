@@ -152,10 +152,10 @@ static void php_protocolbuffers_unknown_field_free_storage(php_protocolbuffers_u
 {
 	   //php_protocolbuffers_unknown_field *unknown_field;
 
-	//   object = (php_protocolbuffers_unknown_field *)((char *)object-XtOffsetOf(php_protocolbuffers_unknown_field, zo));
-	//   zend_object_std_dtor(&object->zo TSRMLS_CC);
+	   object = (php_protocolbuffers_unknown_field *)((char *)object-XtOffsetOf(php_protocolbuffers_unknown_field, zo));
+	   zend_object_std_dtor(&object->zo TSRMLS_CC);
 
-
+/*
 	HashPosition pos;
 	unknown_value *element;
 
@@ -185,7 +185,7 @@ static void php_protocolbuffers_unknown_field_free_storage(php_protocolbuffers_u
 	object->ht = NULL;
 
 	zend_object_std_dtor(&object->zo TSRMLS_CC);
-	efree(object);
+	efree(object);*/
 }
 
 static void php_protocolbuffers_check_type_return(INTERNAL_FUNCTION_PARAMETERS, enum WireType type)
