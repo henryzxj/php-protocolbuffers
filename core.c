@@ -26,7 +26,6 @@ int php_protocolbuffers_read_protected_property(zval *instance, char *name, size
 		retval = 1;
 	}
 	efree(prop_name);
-
 	return retval;
 }
 
