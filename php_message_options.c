@@ -71,6 +71,7 @@ static void php_protocolbuffers_message_options_set_value(INTERNAL_FUNCTION_PARA
 			zend_hash_update(Z_OBJPROP_P(instance), name_key, tmp);
 		}
 	}
+	zend_string_release(name_key);
 }
 
 /* {{{ proto void ProtocolBuffersPHPMessageOptions::setUseWakeupAndSleep(boolean $use)

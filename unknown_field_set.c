@@ -51,15 +51,15 @@ zend_object *php_protocol_buffers_unknown_field_set_new(zend_class_entry *ce TSR
 void php_protocolbuffers_unknown_field_set_properties_init(zval *object TSRMLS_DC)
 {
 	HashTable *properties = NULL;
-	zval *fields = NULL;
+	zval fields;
 
 	ALLOC_HASHTABLE(properties);
 	zend_hash_init(properties, 0, NULL, ZVAL_PTR_DTOR, 0);
 
 //	MAKE_STD_ZVAL(fields);
-	array_init(fields);
+	array_init(&fields);
 	zend_string *fields_key = zend_string_init("fields", sizeof("fields"),0);
-	zend_hash_update(properties, fields_key, fields);
+	zend_hash_update(properties, fields_key, &fields);
 	zend_merge_properties(object, properties);
 }
 
@@ -131,6 +131,31 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO_EX(arginfo_protocolbuffers_unknown_field_add_field, 0, 0, 1)
 	ZEND_ARG_INFO(0, unknown_field)
 ZEND_END_ARG_INFO()
+
+/* {{{ proto ProtocolBuffersUnknownFieldSet ProtocolBuffersUnknownFieldSet::__construct()
+*/
+PHP_METHOD(protocolbuffers_unknown_field_set, __construct)
+{
+//	zval object_zval;
+//	Z_OBJ(object_zval);
+//    constructor = Z_OBJ_HT(object_zval)->get_constructor(Z_OBJ(object_zval));
+
+	zval *instance = getThis();
+	HashTable *properties = NULL;
+	zval tmp;
+
+	ALLOC_HASHTABLE(properties);
+	zend_hash_init(properties, 0, NULL, ZVAL_PTR_DTOR, 0);
+
+	array_init(&tmp);
+	zend_string *fields_key = zend_string_init(ZEND_STRL("fields"),0);
+	zend_hash_update(properties, fields_key, &tmp);
+	zend_string_release(fields_key);
+	zend_merge_properties(instance, properties);
+	FREE_HASHTABLE(properties);
+}
+/* }}} */
+
 
 /* {{{ proto void ProtocolBuffersUnknownFieldSet::count()
 */
@@ -280,6 +305,8 @@ PHP_METHOD(protocolbuffers_unknown_field_set, valid)
 /* }}} */
 
 static zend_function_entry php_protocolbuffers_unknown_field_set_methods[] = {
+	//PHP_ME(protocolbuffers_unknown_field_set, __construct, arginfo_protocolbuffers_descriptor___construct, ZEND_ACC_PRIVATE)
+	PHP_ME(protocolbuffers_unknown_field_set, __construct, arginfo_protocolbuffers_unknown_field_set___construct, ZEND_ACC_PUBLIC)
 	PHP_ME(protocolbuffers_unknown_field_set, count, arginfo_protocolbuffers_unknown_field_set_count, ZEND_ACC_PUBLIC)
 	PHP_ME(protocolbuffers_unknown_field_set, getField, arginfo_protocolbuffers_unknown_field_get_field, ZEND_ACC_PUBLIC)
 	PHP_ME(protocolbuffers_unknown_field_set, addField, arginfo_protocolbuffers_unknown_field_add_field, ZEND_ACC_PUBLIC)

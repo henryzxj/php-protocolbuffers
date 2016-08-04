@@ -121,4 +121,6 @@ static pb_inline int Z_BVAL_P(zval *v)
     }
 }
 
+#define PB_MAKE_STD_ZVAL(p)             zval _stack_zval_##p; p = &(_stack_zval_##p)
+
 #endif /* PHP_PROTOCOLBUFFERS_H */

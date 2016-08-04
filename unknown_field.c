@@ -150,6 +150,12 @@ void php_protocolbuffers_unknown_field_set_type(zval *instance, int type TSRMLS_
 
 static void php_protocolbuffers_unknown_field_free_storage(php_protocolbuffers_unknown_field *object TSRMLS_DC)
 {
+	   //php_protocolbuffers_unknown_field *unknown_field;
+
+	//   object = (php_protocolbuffers_unknown_field *)((char *)object-XtOffsetOf(php_protocolbuffers_unknown_field, zo));
+	//   zend_object_std_dtor(&object->zo TSRMLS_CC);
+
+
 	HashPosition pos;
 	unknown_value *element;
 
@@ -273,7 +279,6 @@ zend_object *php_protocolbuffers_unknown_field_new(zend_class_entry *ce TSRMLS_D
 	zend_hash_init(intern->ht, 0, NULL, NULL, 0);
 
 //	retval.handlers = &php_protocolbuffers_unknown_field_object_handlers;
-
 	return &intern->zo;
 }
 

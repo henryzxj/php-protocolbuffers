@@ -324,12 +324,12 @@ PHP_RINIT_FUNCTION(protocolbuffers)
 	PBG(strict_mode) = 1;
 
 	// NOTE(chobie): prevent segmentaiton fault on CentOS box (CentOS uses json shared modules.)
-	zend_string *name = zend_string_init("JsonSerializable", sizeof("JsonSerializable")-1,0);
+	zend_string *name = zend_string_init(ZEND_STRL("JsonSerializable"),0);
 	if (implemented == 0 && (json=zend_lookup_class(name)) != NULL) {
 		zend_class_implements(php_protocol_buffers_message_class_entry TSRMLS_CC, 1, json);
 		implemented = 1;
 	}
-
+	zend_string_release(name);
 	if (!PBG(messages)) {
 		ALLOC_HASHTABLE(PBG(messages));
 		zend_hash_init(PBG(messages), 0, NULL, NULL, 0);

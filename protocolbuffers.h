@@ -295,6 +295,7 @@ typedef struct{
 	intern = (STRUCT_NAME*)ecalloc(1, sizeof(STRUCT_NAME) + zend_object_properties_size(ce));\
 	zend_object_std_init(&intern->zo, ce TSRMLS_CC);\
 	object_properties_init(&intern->zo, ce);\
+	memcpy(&STRUCT_NAME##_object_handlers, zend_get_std_object_handlers(), sizeof(STRUCT_NAME##_object_handlers));\
 	STRUCT_NAME##_object_handlers.offset = XtOffsetOf(STRUCT_NAME, zo);\
 	STRUCT_NAME##_object_handlers.free_obj = (zend_object_free_obj_t)STRUCT_NAME##_free_storage;\
 	intern->zo.handlers = &STRUCT_NAME##_object_handlers;

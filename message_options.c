@@ -34,18 +34,19 @@
 int php_protocolbuffers_message_options_init_properties(zval *object TSRMLS_DC)
 {
 	HashTable *properties = NULL;
-	zval *tmp = NULL;
+	zval tmp;
 
 	ALLOC_HASHTABLE(properties);
 	zend_hash_init(properties, 0, NULL, ZVAL_PTR_DTOR, 0);
 
 //	MAKE_STD_ZVAL(tmp);
-	array_init(tmp);
-	zend_string *extensions_key = zend_string_init("extensions", sizeof("extensions"),0);
-	zend_hash_update(properties, extensions_key, tmp);
+	array_init(&tmp);
+	zend_string *extensions_key = zend_string_init(ZEND_STRL("extensions"),0);
+	zend_hash_update(properties, extensions_key, &tmp);
 
 	zend_merge_properties(object, properties);
-
+	zend_string_release(extensions_key);
+	FREE_HASHTABLE(properties);
 	return 0;
 }
 
@@ -66,7 +67,7 @@ PHP_METHOD(protocolbuffers_message_options, getExtension)
 		return;
 	}
 	name_key = zend_string_init(name,name_len,0);
-	options = pb_zend_read_property(php_protocol_buffers_descriptor_builder_class_entry, getThis(), ZEND_STRS("extensions")-1, 1 TSRMLS_CC);
+	options = pb_zend_read_property(php_protocol_buffers_descriptor_builder_class_entry, getThis(), ZEND_STRL("extensions"), 1 TSRMLS_CC);
 
 	if ((result=zend_hash_find(Z_ARRVAL_P(options), name_key)) == NULL) {
 		if (strcmp(name, "php") == 0) {
@@ -98,7 +99,7 @@ void php_protocolbuffers_message_options_class(TSRMLS_D)
 
 	INIT_CLASS_ENTRY(ce, "ProtocolBuffersMessageOptions", php_protocolbuffers_message_options_methods);
 	php_protocol_buffers_message_options_class_entry = zend_register_internal_class(&ce TSRMLS_CC);
-	zend_declare_property_null(php_protocol_buffers_message_options_class_entry, ZEND_STRS("extensions")-1, ZEND_ACC_PUBLIC TSRMLS_CC);
+	zend_declare_property_null(php_protocol_buffers_message_options_class_entry, ZEND_STRL("extensions"), ZEND_ACC_PUBLIC TSRMLS_CC);
 
 	PHP_PROTOCOLBUFFERS_REGISTER_NS_CLASS_ALIAS(PHP_PROTOCOLBUFFERS_NAMESPACE, "MessageOptions", php_protocol_buffers_message_options_class_entry);
 }

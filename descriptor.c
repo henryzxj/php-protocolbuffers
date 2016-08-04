@@ -57,19 +57,20 @@ static const char *fields_map[] = {
 
 int php_protocolbuffers_descriptor_properties_init(zval *object TSRMLS_DC)
 {
-	zval *pp = NULL;
-	HashTable *properties = NULL;
+	zval pp;
+	HashTable *properties;
 
 	ALLOC_HASHTABLE(properties);
 	zend_hash_init(properties, 0, NULL, ZVAL_PTR_DTOR, 0);
 
 	//MAKE_STD_ZVAL(pp);
-	array_init(pp);
-//	zend_hash_update(properties, "fields", sizeof("fields"), (void **)&pp, sizeof(zval), NULL);
-	zend_string *name = zend_string_init("fields", sizeof("fields"),0);
-	zend_hash_update(properties, name, pp);
+	array_init(&pp);
+
+	zend_string *name = zend_string_init(ZEND_STRL("fields"),0);
+	zend_hash_update(properties, name, &pp);
 
 	zend_merge_properties(object, properties);
+	zend_string_release(name);
 	return 0;
 }
 
@@ -85,6 +86,7 @@ static const char* field_type_to_str(int field_type)
 
 static void php_protocolbuffers_descriptor_free_storage(php_protocolbuffers_descriptor *object TSRMLS_DC)
 {
+
 	if (object->name_len > 0) {
 		efree(object->name);
 	}
@@ -136,7 +138,6 @@ zend_object *php_protocolbuffers_descriptor_new(zend_class_entry *ce TSRMLS_DC)
 	intern->free_container = 0;
 	intern->container = (php_protocolbuffers_scheme_container*)emalloc(sizeof(php_protocolbuffers_scheme_container));
 	php_protocolbuffers_scheme_container_init(intern->container);
-
 	return &intern->zo;
 }
 

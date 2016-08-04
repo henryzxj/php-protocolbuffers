@@ -92,9 +92,7 @@ zend_object *php_protocolbuffers_message_new(zend_class_entry *ce TSRMLS_DC)
 
 	intern->max    = 0;
 	intern->offset = 0;
-	ZVAL_NULL(intern->container);
-
-
+	intern->container = (zval *)emalloc(sizeof(zval));
 	return &intern->zo;
 }
 
