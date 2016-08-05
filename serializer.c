@@ -380,9 +380,9 @@ static void php_protocolbuffers_encode_element_msg(PB_ENCODE_CALLBACK_PARAMETERS
 
 	ce = Z_OBJCE_P(*element);
 
-	php_protocolbuffers_get_scheme_container(ZSTR_VAL(ce->name), ZSTR_LEN(ce->name), &n_container TSRMLS_CC);
+	php_protocolbuffers_get_scheme_container(ce->name, &n_container TSRMLS_CC);
 	if (err) {
-		php_error_docref(NULL TSRMLS_CC, E_ERROR, "php_protocolbuffers_get_scheme_container failed. %s does not have getDescriptor method", ce->name);
+		php_error_docref(NULL TSRMLS_CC, E_ERROR, "php_protocolbuffers_get_scheme_container failed. %s does not have getDescriptor method", ZSTR_VAL(ce->name));
 		return;
 	}
 	/* TODO: add error handling */
@@ -755,6 +755,7 @@ int php_protocolbuffers_encode_message(INTERNAL_FUNCTION_PARAMETERS, zval *klass
 			hash = Z_ARRVAL_P(c);
 		} else {
 			php_protocolbuffers_serializer_destroy(ser);
+			zend_string_release(single_property_name_key);
 			zend_throw_exception_ex(spl_ce_InvalidArgumentException, 0 TSRMLS_CC, "the class does not have `_properties` protected property.");
 			return -1;
 		}

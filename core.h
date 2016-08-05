@@ -54,7 +54,7 @@ int php_protocolbuffers_jsonserialize(INTERNAL_FUNCTION_PARAMETERS, int throws_e
 
 int php_protocolbuffers_encode(INTERNAL_FUNCTION_PARAMETERS, zend_class_entry *ce, zval *klass);
 
-int php_protocolbuffers_decode(INTERNAL_FUNCTION_PARAMETERS, const char *data, int data_len, const char *klass, int klass_len);
+int php_protocolbuffers_decode(INTERNAL_FUNCTION_PARAMETERS, const char *data, int data_len, zend_string *klass);
 
 void php_protocolbuffers_process_unknown_field(INTERNAL_FUNCTION_PARAMETERS, php_protocolbuffers_scheme_container *container, HashTable *hresult, zval *dz, int tag, int wiretype, int64_t value);
 
@@ -72,9 +72,9 @@ int php_protocolbuffers_get_default_unknown_property_name_len();
 
 void php_protocolbuffers_scheme_container_init(php_protocolbuffers_scheme_container *container);
 
-int php_protocolbuffers_get_scheme_container(const char *klass, size_t klass_len, php_protocolbuffers_scheme_container **result TSRMLS_DC);
+int php_protocolbuffers_get_scheme_container(zend_string *klass,php_protocolbuffers_scheme_container **result TSRMLS_DC);
 
-int php_protocolbuffers_get_scheme_container_ex(const char *klass, size_t klass_len, int throws_exception, php_protocolbuffers_scheme_container **result TSRMLS_DC);
+int php_protocolbuffers_get_scheme_container_ex(zend_string *klass,int throws_exception, php_protocolbuffers_scheme_container **result TSRMLS_DC);
 
 void php_protocolbuffers_format_string(zval *result, pbf *payload, int use_string TSRMLS_DC);
 

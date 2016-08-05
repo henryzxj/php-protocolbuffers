@@ -600,7 +600,7 @@ static int php_protocolbuffers_json_encode_value(zval **element, php_protocolbuf
 			break;
 		case TYPE_MESSAGE: {
 			php_protocolbuffers_scheme_container *child_scheme;
-			php_protocolbuffers_get_scheme_container(ZSTR_VAL(scheme->ce->name), ZSTR_LEN(scheme->ce->name), &child_scheme TSRMLS_CC);
+			php_protocolbuffers_get_scheme_container(scheme->ce->name, &child_scheme TSRMLS_CC);
 
 			ser->serialize_message(*element, scheme, child_scheme, container, outer TSRMLS_CC);
 			break;

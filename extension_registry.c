@@ -265,7 +265,7 @@ PHP_METHOD(protocolbuffers_extension_registry, add)
 		}
 
 		zend_declare_property_null(ce, name, len-1, ZEND_ACC_PROTECTED TSRMLS_CC);
-		php_protocolbuffers_get_scheme_container(ZSTR_VAL((ce)->name), ZSTR_LEN((ce)->name), &container TSRMLS_CC);
+		php_protocolbuffers_get_scheme_container(ce->name, &container TSRMLS_CC);
 		container->scheme = (php_protocolbuffers_scheme*)erealloc(container->scheme, sizeof(php_protocolbuffers_scheme) * (container->size + 1));
 		if (php_protocolbuffers_init_scheme_with_zval(&container->scheme[container->size], extension, descriptor TSRMLS_CC)) {
 			container->scheme[container->size].is_extension = 1;

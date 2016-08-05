@@ -60,13 +60,13 @@ static int json_serializable_checked = 0;
 		int __err;\
 		\
 		__ce  = Z_OBJCE_P(instance);\
-		__err = php_protocolbuffers_get_scheme_container(ZSTR_VAL(__ce->name), ZSTR_LEN(__ce->name), container TSRMLS_CC);\
+		__err = php_protocolbuffers_get_scheme_container(__ce->name, container TSRMLS_CC);\
 		if (__err) {\
 			if (EG(exception)) {\
 				return;\
 			} else {\
 				/* TODO: improve displaying error message */\
-				php_error_docref(NULL TSRMLS_CC, E_ERROR, "php_protocolbuffers_get_scheme_container failed. %s does not have getDescriptor method", __ce->name);\
+				php_error_docref(NULL TSRMLS_CC, E_ERROR, "php_protocolbuffers_get_scheme_container failed. %s does not have getDescriptor method", ZSTR_VAL(__ce->name));\
 				return;\
 			}\
 		}\
@@ -992,7 +992,7 @@ PHP_METHOD(protocolbuffers_message, parseFromString)
 	}
 	zend_class_entry *called_scope = zend_get_called_scope(execute_data);
 	if (called_scope) {
-		php_protocolbuffers_decode(INTERNAL_FUNCTION_PARAM_PASSTHRU, data, data_len, ZSTR_VAL(called_scope->name), ZSTR_LEN(called_scope->name));
+		php_protocolbuffers_decode(INTERNAL_FUNCTION_PARAM_PASSTHRU, data, data_len, called_scope->name);
 	} else {
 		zend_throw_exception_ex(spl_ce_RuntimeException, 0 TSRMLS_CC, "Missing EG(current_scope). this is bug");
 	}

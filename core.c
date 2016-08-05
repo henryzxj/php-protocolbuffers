@@ -92,53 +92,51 @@ void php_protocolbuffers_scheme_container_init(php_protocolbuffers_scheme_contai
 	container->single_property_h = zend_inline_hash_func(container->single_property_name, container->single_property_name_len);
 }
 
-int php_protocolbuffers_get_scheme_container(const char *klass, size_t klass_len, php_protocolbuffers_scheme_container **result TSRMLS_DC)
+int php_protocolbuffers_get_scheme_container(zend_string *klass, php_protocolbuffers_scheme_container **result TSRMLS_DC)
 {
-	return php_protocolbuffers_get_scheme_container_ex(klass, klass_len, 1, result TSRMLS_CC);
+	return php_protocolbuffers_get_scheme_container_ex(klass, 1, result TSRMLS_CC);
 }
 
-int php_protocolbuffers_get_scheme_container_ex(const char *klass, size_t klass_len, int throws_exception, php_protocolbuffers_scheme_container **result TSRMLS_DC)
+int php_protocolbuffers_get_scheme_container_ex(zend_string *klass, int throws_exception, php_protocolbuffers_scheme_container **result TSRMLS_DC)
 {
 	php_protocolbuffers_scheme_container *container, *cn;
-	zend_string *klass_key = zend_string_init(klass,klass_len,0);
-	if ((cn=(php_protocolbuffers_scheme_container *)zend_hash_find(PBG(messages), klass_key)) == NULL) {
-		zval *ret = NULL;
+	if ((cn=(php_protocolbuffers_scheme_container *)zend_hash_find(PBG(messages), klass)) == NULL) {
+		zval ret;
 		zend_class_entry *ce = NULL;
-		zend_string *klass_name = zend_string_init((char*)klass, klass_len,0);
-		if ((ce=(zend_class_entry *)zend_lookup_class(klass_name)) == NULL) {
-			php_error_docref(NULL TSRMLS_CC, E_ERROR, "php_protocolbuffers_get_scheme_container failed. %s does find", klass);
+		if ((ce=(zend_class_entry *)zend_lookup_class(klass)) == NULL) {
+			php_error_docref(NULL TSRMLS_CC, E_ERROR, "php_protocolbuffers_get_scheme_container failed. %s does find", ZSTR_VAL(klass));
 			return 1;
 		}
 
-		if (zend_call_method(NULL, ce, NULL, ZEND_STRS("getdescriptor")-1, ret, 0, NULL, NULL  TSRMLS_CC)) {
-			if (Z_TYPE_P(ret) == IS_ARRAY) {
+		if (zend_call_method(NULL, ce, NULL, ZEND_STRL("getdescriptor"), &ret, 0, NULL, NULL)) {
+			if (Z_TYPE_P(&ret) == IS_ARRAY) {
 				/* TODO(chobie): move this block after release. */
-				zval_ptr_dtor(ret);
+				zval_ptr_dtor(&ret);
 				php_error_docref(NULL TSRMLS_CC, E_ERROR, "php_protocolbuffers_get_scheme_container no longer support array based descriptor");
 				return 1;
-			} else if (Z_TYPE_P(ret) == IS_OBJECT) {
+			} else if (Z_TYPE_P(&ret) == IS_OBJECT) {
 				zend_class_entry *entry;
 				php_protocolbuffers_descriptor *desc;
 
-				entry = Z_OBJCE_P(ret);
+				entry = Z_OBJCE_P(&ret);
 				if (entry == php_protocol_buffers_descriptor_class_entry) {
-					desc = PHP_PROTOCOLBUFFERS_GET_OBJECT(php_protocolbuffers_descriptor, ret);
+					desc = PHP_PROTOCOLBUFFERS_GET_OBJECT(php_protocolbuffers_descriptor, &ret);
 					desc->free_container = 1;
-					zend_hash_add(PBG(messages), klass_key, (zval *)desc->container);
+					zend_hash_add(PBG(messages), klass, (zval *)desc->container);
 				} else {
 					zend_throw_exception_ex(php_protocol_buffers_invalid_protocolbuffers_exception_class_entry, 0 TSRMLS_CC, "getDescriptor returns unexpected class");
-					if (ret != NULL) {
-						zval_ptr_dtor(ret);
+					if (&ret != NULL) {
+						zval_ptr_dtor(&ret);
 					}
 					return 1;
 				}
 
-				zval_ptr_dtor(ret);
+				zval_ptr_dtor(&ret);
 				*result = desc->container;
 				return 0;
 			} else {
-				if (ret != NULL) {
-					zval_ptr_dtor(ret);
+				if (&ret != NULL) {
+					zval_ptr_dtor(&ret);
 				}
 				zend_throw_exception_ex(php_protocol_buffers_invalid_protocolbuffers_exception_class_entry, 0 TSRMLS_CC, "getDescriptor returns unexpected class");
 				return 1;
@@ -147,7 +145,7 @@ int php_protocolbuffers_get_scheme_container_ex(const char *klass, size_t klass_
 			if (EG(exception)) {
 				PHP_PROTOCOLBUFFERS_EXCEPTION_ERROR(EG(exception));
 			} else {
-				php_error_docref(NULL TSRMLS_CC, E_ERROR, "php_protocolbuffers_get_scheme_container failed. %s does not have getDescriptor method", klass);
+				php_error_docref(NULL TSRMLS_CC, E_ERROR, "php_protocolbuffers_get_scheme_container failed. %s does not have getDescriptor method", ZSTR_VAL(klass));
 			}
 			return 1;
 		}
@@ -463,7 +461,7 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 				ulong name_hash = 0;
 				zend_string *name_key = NULL;
 
-				php_protocolbuffers_get_scheme_container(ZSTR_VAL(s->ce->name), ZSTR_LEN(s->ce->name), &c_container TSRMLS_CC);
+				php_protocolbuffers_get_scheme_container(s->ce->name, &c_container TSRMLS_CC);
 
 				if (container->use_single_property < 1) {
 					name        = s->mangled_name;
@@ -750,7 +748,7 @@ int php_protocolbuffers_jsonserialize(INTERNAL_FUNCTION_PARAMETERS, int throws_e
 	zval *tmp = NULL;
 	php_protocolbuffers_scheme_container *container;
 
-	err = php_protocolbuffers_get_scheme_container_ex(ZSTR_VAL(ce->name), ZSTR_LEN(ce->name), throws_exception, &container TSRMLS_CC);
+	err = php_protocolbuffers_get_scheme_container_ex(ce->name, throws_exception, &container TSRMLS_CC);
 	if (err) {
 		if (EG(exception)) {
 			return err;
@@ -778,7 +776,7 @@ int php_protocolbuffers_encode(INTERNAL_FUNCTION_PARAMETERS, zend_class_entry *c
 	php_protocolbuffers_serializer *ser = NULL;
 	php_protocolbuffers_scheme_container *container;
 
-	err = php_protocolbuffers_get_scheme_container(ZSTR_VAL(ce->name), ZSTR_LEN(ce->name), &container TSRMLS_CC);
+	err = php_protocolbuffers_get_scheme_container(ce->name, &container TSRMLS_CC);
 	if (err) {
 		if (EG(exception)) {
 			return 1;
@@ -804,7 +802,7 @@ int php_protocolbuffers_encode(INTERNAL_FUNCTION_PARAMETERS, zend_class_entry *c
 	return 0;
 }
 
-int php_protocolbuffers_decode(INTERNAL_FUNCTION_PARAMETERS, const char *data, int data_len, const char *klass, int klass_len)
+int php_protocolbuffers_decode(INTERNAL_FUNCTION_PARAMETERS, const char *data, int data_len, zend_string *klass)
 {
 	zval *obj = NULL;
 	php_protocolbuffers_scheme_container *container;
@@ -817,12 +815,12 @@ int php_protocolbuffers_decode(INTERNAL_FUNCTION_PARAMETERS, const char *data, i
 		return 1;
 	}
 
-	err = php_protocolbuffers_get_scheme_container(klass, klass_len, &container TSRMLS_CC);
+	err = php_protocolbuffers_get_scheme_container(klass, &container TSRMLS_CC);
 	if (err) {
 		if (EG(exception)) {
 			// do nothing
 		} else {
-			php_error_docref(NULL TSRMLS_CC, E_ERROR, "php_protocolbuffers_get_scheme_container failed. %s does not have getDescriptor method", klass);
+			php_error_docref(NULL TSRMLS_CC, E_ERROR, "php_protocolbuffers_get_scheme_container failed. %s does not have getDescriptor method", ZSTR_VAL(klass));
 		}
 		return 1;
 	}
@@ -832,11 +830,11 @@ int php_protocolbuffers_decode(INTERNAL_FUNCTION_PARAMETERS, const char *data, i
 	if (PBG(classes)) {
 		/* Memo: fast lookup */
 //		if (zend_hash_find(PBG(classes), (char*)klass, klass_len, (void **)&ce) == FAILURE) {
-		zend_string *klass_name = zend_string_init((char*)klass, klass_len,0);
-		if ((ce=(zend_class_entry *)zend_hash_find(PBG(classes), klass_name)) == NULL) {
-			ce = zend_lookup_class(klass_name);
+		//zend_string *klass_name = zend_string_init((char*)klass, klass_len,0);
+		if ((ce=(zend_class_entry *)zend_hash_find(PBG(classes), klass)) == NULL) {
+			ce = zend_lookup_class(klass);
 			if (ce != NULL) {
-				zend_hash_update(PBG(classes), klass_name, (zval *)ce);
+				zend_hash_update(PBG(classes), klass, (zval *)ce);
 			} else {
 				php_error_docref(NULL TSRMLS_CC, E_ERROR, "class lookup failed. %s does exist", klass);
 				return 1;
@@ -910,12 +908,13 @@ void php_protocolbuffers_execute_wakeup(zval *obj, php_protocolbuffers_scheme_co
 void php_protocolbuffers_execute_sleep(zval *obj, php_protocolbuffers_scheme_container *container TSRMLS_DC)
 {
 	zval fname, *retval_ptr = NULL;
-	zend_string *name_key = zend_string_init("__sleep", sizeof("__sleep"),0);
+	zend_string *name_key = zend_string_init(ZEND_STRL("__sleep"),0);
 	if (Z_OBJCE_P(obj) != PHP_IC_ENTRY &&
 		zend_hash_exists(&Z_OBJCE_P(obj)->function_table, name_key)) {
 
 //		INIT_PZVAL(&fname);
-		ZVAL_STRINGL(&fname, "__sleep", sizeof("__sleep") -1);
+		//ZVAL_STRINGL(&fname, ZEND_STRL("__sleep"));
+		ZVAL_NEW_STR(&fname,name_key);
 
 		call_user_function_ex(CG(function_table), obj, &fname, retval_ptr, 0, 0, 1, NULL TSRMLS_CC);
 
@@ -969,7 +968,7 @@ int php_protocolbuffers_properties_init(zval *object, zend_class_entry *ce TSRML
 	php_protocolbuffers_scheme *scheme = NULL;
 	HashTable *properties = NULL;
 
-	if (php_protocolbuffers_get_scheme_container(ZSTR_VAL(ce->name), ZSTR_LEN(ce->name), &container TSRMLS_CC)) {
+	if (php_protocolbuffers_get_scheme_container(ce->name, &container TSRMLS_CC)) {
 		return 1;
 	}
 

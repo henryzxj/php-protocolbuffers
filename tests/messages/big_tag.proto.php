@@ -40,7 +40,6 @@ class Tutorial_BigTag
               "repeated" => false,
               "default"  => null,
           )));
-
           self::$descriptor = $desc->build();
       }
 

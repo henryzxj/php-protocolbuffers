@@ -371,20 +371,20 @@ static void php_protocolbuffers_build_field_descriptor(php_protocolbuffers_descr
 
 //		MAKE_STD_ZVAL(value);
 		ZVAL_STRING(value, ischeme->name);
-		php_protocolbuffers_set_protected_property(tmp, ZEND_STRS("name"), value TSRMLS_CC);
+		php_protocolbuffers_set_protected_property(tmp, ZEND_STRL("name"), value TSRMLS_CC);
 
 //		MAKE_STD_ZVAL(value);
 		ZVAL_LONG(value, ischeme->type);
-		php_protocolbuffers_set_protected_property(tmp, ZEND_STRS("type"), value TSRMLS_CC);
+		php_protocolbuffers_set_protected_property(tmp, ZEND_STRL("type"), value TSRMLS_CC);
 
 //		MAKE_STD_ZVAL(value);
 		ZVAL_BOOL(value, ischeme->is_extension);
-		php_protocolbuffers_set_protected_property(tmp, ZEND_STRS("extension"), value TSRMLS_CC);
+		php_protocolbuffers_set_protected_property(tmp, ZEND_STRL("extension"), value TSRMLS_CC);
 
 		zend_hash_index_update(Z_ARRVAL_P(arrval), ischeme->tag, tmp);
 	}
 
-	php_protocolbuffers_set_protected_property(result, ZEND_STRS("fields"), arrval TSRMLS_CC);
+	php_protocolbuffers_set_protected_property(result, ZEND_STRL("fields"), arrval TSRMLS_CC);
 }
 
 /* {{{ proto ProtocolBuffers_DescriptorBuilder ProtocolBuffers_DescriptorBuilder::__construct()
@@ -423,9 +423,11 @@ PHP_METHOD(protocolbuffers_descriptor_builder, __construct)
 	array_init(&tmp);
 	name_key = zend_string_init(ZEND_STRL("extension_ranges"),0);
 	zend_hash_update(properties, name_key, &tmp);
-	zend_string_release(name_key);
+
 	zend_merge_properties(instance, properties);
-	FREE_HASHTABLE(properties);
+	HashTable *ht =	Z_OBJPROP_P(instance);
+	zend_string_release(name_key);
+	//FREE_HASHTABLE(properties);
 }
 /* }}} */
 
@@ -436,9 +438,9 @@ PHP_METHOD(protocolbuffers_descriptor_builder, addField)
 	zval *instance = getThis();
 	zval *field = NULL;
 	zval *fields = NULL;
-	zend_ulong index;
+	zend_long index=0;
 	zend_bool force_add = 0;
-
+	HashTable *ht =	Z_OBJPROP_P(instance);
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,
 		"lO|b", &index, &field, php_protocol_buffers_field_descriptor_class_entry, &force_add) == FAILURE) {
 		return;
@@ -449,7 +451,8 @@ PHP_METHOD(protocolbuffers_descriptor_builder, addField)
 		return;
 	}
 
-	zend_string *fields_name = zend_string_init(ZEND_STRS("fields"),0);
+	zend_string *fields_name = zend_string_init(ZEND_STRL("fields"),0);
+
 	if ((fields=zend_hash_find(Z_OBJPROP_P(instance), fields_name)) != NULL) {
 		if (zend_hash_index_exists(Z_ARRVAL_P(fields), index)) {
 			if (force_add < 1) {
@@ -459,9 +462,7 @@ PHP_METHOD(protocolbuffers_descriptor_builder, addField)
 			return;
 		}
 
-		if (Z_REFCOUNTED_P(field)) {
-			Z_ADDREF_P(field);
-		}
+		Z_TRY_ADDREF_P(field);
 		zend_hash_index_update(Z_ARRVAL_P(fields), index, field);
 	}
 	zend_string_release(fields_name);
@@ -473,17 +474,16 @@ PHP_METHOD(protocolbuffers_descriptor_builder, addField)
 PHP_METHOD(protocolbuffers_descriptor_builder, setName)
 {
 	zval *instance = getThis();
-	char *name;
-	long name_len;
-
+	zend_string *name;
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,
-		"s", &name, &name_len) == FAILURE) {
+		"S", &name) == FAILURE) {
 		return;
 	}
 
-	if (name_len > 0) {
-		add_property_string_ex(instance, ZEND_STRS("name"), name);
+	if (ZSTR_LEN(name) > 0) {
+		add_property_str_ex(instance, ZEND_STRL("name"), name);
 	}
+	zend_string_release(name);
 }
 /* }}} */
 
@@ -494,7 +494,7 @@ PHP_METHOD(protocolbuffers_descriptor_builder, getName)
 {
 	zval *name;
 
-	name = pb_zend_read_property(php_protocol_buffers_descriptor_builder_class_entry, getThis(), ZEND_STRS("name")-1, 0 TSRMLS_CC);
+	name = pb_zend_read_property(php_protocol_buffers_descriptor_builder_class_entry, getThis(), ZEND_STRL("name"), 0 TSRMLS_CC);
 	RETURN_STRINGL(Z_STRVAL_P(name), Z_STRLEN_P(name));
 }
 /* }}} */
@@ -512,7 +512,7 @@ PHP_METHOD(protocolbuffers_descriptor_builder, build)
 	php_protocolbuffers_descriptor_properties_init(result TSRMLS_CC);
 	descriptor = PHP_PROTOCOLBUFFERS_GET_OBJECT(php_protocolbuffers_descriptor, result);
 
-	name = pb_zend_read_property(php_protocol_buffers_descriptor_builder_class_entry, getThis(), ZEND_STRS("name")-1, 0 TSRMLS_CC);
+	name = pb_zend_read_property(php_protocol_buffers_descriptor_builder_class_entry, getThis(), ZEND_STRL("name"), 0 TSRMLS_CC);
 	if (Z_TYPE_P(name) == IS_STRING) {
 		descriptor->name_len = Z_STRLEN_P(name);
 		if (descriptor->name_len > 0) {
@@ -522,7 +522,7 @@ PHP_METHOD(protocolbuffers_descriptor_builder, build)
 		}
 	}
 
-	fields = pb_zend_read_property(php_protocol_buffers_descriptor_builder_class_entry, getThis(), ZEND_STRS("fields")-1, 0 TSRMLS_CC);
+	fields = pb_zend_read_property(php_protocol_buffers_descriptor_builder_class_entry, getThis(), ZEND_STRL("fields"), 0 TSRMLS_CC);
 	if (!php_protocolbuffers_build_fields(fields, descriptor, result TSRMLS_CC)) {
 		zval_ptr_dtor(result);
 		RETURN_NULL();
@@ -540,7 +540,7 @@ PHP_METHOD(protocolbuffers_descriptor_builder, build)
 PHP_METHOD(protocolbuffers_descriptor_builder, getOptions)
 {
 	zval *options = NULL;
-	options = pb_zend_read_property(php_protocol_buffers_descriptor_builder_class_entry, getThis(), ZEND_STRS("options")-1, 0 TSRMLS_CC);
+	options = pb_zend_read_property(php_protocol_buffers_descriptor_builder_class_entry, getThis(), ZEND_STRL("options"), 0 TSRMLS_CC);
 	RETURN_ZVAL(options, 1, 0);
 }
 /* }}} */
@@ -552,7 +552,7 @@ PHP_METHOD(protocolbuffers_descriptor_builder, addExtensionRange)
 {
 	zval *instance = getThis();
 	zval *z_begin = NULL, *z_end = NULL, *fields = NULL, *extension_ranges = NULL;
-	long begin = 0, end = 0;
+	zend_long begin = 0, end = 0;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,
 		"ll", &begin, &end) == FAILURE) {
@@ -572,7 +572,7 @@ PHP_METHOD(protocolbuffers_descriptor_builder, addExtensionRange)
 		return;
 	}
 
-	zend_string *fields_name = zend_string_init(ZEND_STRS("fields"),0);
+	zend_string *fields_name = zend_string_init(ZEND_STRL("fields"),0);
 	if ((fields=zend_hash_find(Z_OBJPROP_P(instance), fields_name)) != NULL) {
 		HashPosition pos = 0;
 		char *string_key = {0};
@@ -603,7 +603,7 @@ PHP_METHOD(protocolbuffers_descriptor_builder, addExtensionRange)
 		zend_string_release(fields_name);
 		zend_string_release(string_key_name);
 	}
-	zend_string *extension_ranges_key=zend_string_init(ZEND_STRS("extension_ranges"),0);
+	zend_string *extension_ranges_key=zend_string_init(ZEND_STRL("extension_ranges"),0);
 	if ((extension_ranges=zend_hash_find(Z_OBJPROP_P(instance), extension_ranges_key)) != NULL) {
 		zval *array = NULL;
 //		MAKE_STD_ZVAL(array);

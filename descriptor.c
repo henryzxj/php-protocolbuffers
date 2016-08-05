@@ -86,7 +86,7 @@ static const char* field_type_to_str(int field_type)
 
 static void php_protocolbuffers_descriptor_free_storage(php_protocolbuffers_descriptor *object TSRMLS_DC)
 {
-
+/*
 	if (object->name_len > 0) {
 		efree(object->name);
 	}
@@ -126,6 +126,7 @@ static void php_protocolbuffers_descriptor_free_storage(php_protocolbuffers_desc
 
 	zend_object_std_dtor(&object->zo TSRMLS_CC);
 	efree(object);
+	*/
 }
 
 zend_object *php_protocolbuffers_descriptor_new(zend_class_entry *ce TSRMLS_DC)
