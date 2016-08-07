@@ -35,7 +35,7 @@
 
 #define PHP_PROTOCOLBUFFERS_MAX_EXTENSION_RANGE 536870912
 
-static zend_object_handlers php_protocolbuffers_descriptor_object_handlers;
+static zend_object_handlers php_protocolbuffers_descriptor_builder_object_handlers;
 
 int php_protocolbuffers_field_descriptor_get_property(HashTable *hash, const char *name, size_t name_len, zval **result TSRMLS_DC)
 {
@@ -54,23 +54,24 @@ int php_protocolbuffers_field_descriptor_get_property(HashTable *hash, const cha
 }
 
 
+static php_protocolbuffers_descriptor_builder *php_protocolbuffers_fetch_object(zend_object *object) {
+	return (php_protocolbuffers_descriptor_builder *)((char*)(object) - XtOffsetOf(php_protocolbuffers_descriptor_builder, zo));
+}
+
 static void php_protocolbuffers_descriptor_builder_free_storage(zend_object *object TSRMLS_DC)
 {
-	zend_object_std_dtor(object TSRMLS_CC);
+	php_protocolbuffers_descriptor_builder * intern = php_protocolbuffers_fetch_object(object);
+	zend_object_std_dtor(&intern->zo);
 	efree(object);
+	efree(intern);
 }
+
 
 
 zend_object *php_protocolbuffers_descriptor_builder_new(zend_class_entry *ce TSRMLS_DC)
 {
-	zend_object *object = zend_objects_new(ce);
-
-//	retval.handle = zend_objects_store_put(object,
-//		(zend_objects_store_dtor_t)zend_objects_destroy_object,
-//		(zend_objects_free_object_storage_t) php_protocolbuffers_descriptor_builder_free_storage,
-//	NULL TSRMLS_CC);
-
-	return object;
+	PHP_PROTOCOLBUFFERS_STD_CREATE_OBJECT(php_protocolbuffers_descriptor_builder);
+	return &intern->zo;
 }
 
 
@@ -319,7 +320,7 @@ static int php_protocolbuffers_build_fields(zval *fields, php_protocolbuffers_de
 	HashPosition pos;
 	zval *element;
 	int n;
-	size_t sz;
+	uint32_t sz;
 	php_protocolbuffers_scheme *ischeme;
 
 	if (fields == NULL || Z_TYPE_P(fields) != IS_ARRAY) {
@@ -394,40 +395,31 @@ PHP_METHOD(protocolbuffers_descriptor_builder, __construct)
 	zval *instance = getThis();
 	HashTable *properties = NULL;
 	zval tmp;
-	zend_string *name_key = NULL;
+	zend_string *name_key=NULL;
+
 	ALLOC_HASHTABLE(properties);
 	zend_hash_init(properties, 0, NULL, ZVAL_PTR_DTOR, 0);
 
-	//zval ztmp;
-//	MAKE_STD_ZVAL(tmp);
 	ZVAL_NULL(&tmp);
-
 	name_key = zend_string_init(ZEND_STRL("name"),0);
 	zend_hash_update(properties, name_key,&tmp);
 
-//	MAKE_STD_ZVAL(tmp);
-//	array_init(tmp);
-	//zval zv;
 	array_init(&tmp);
-	name_key = zend_string_init(ZEND_STRL("fields"),0);
+	name_key= zend_string_init(ZEND_STRL("fields"),0);
 	zend_hash_update(properties, name_key, &tmp);
 
-//	MAKE_STD_ZVAL(tmp);
 	object_init_ex(&tmp, php_protocol_buffers_message_options_class_entry);
 	php_protocolbuffers_message_options_init_properties(&tmp TSRMLS_CC);
-
 	name_key = zend_string_init(ZEND_STRL("options"),0);
 	zend_hash_update(properties, name_key, &tmp);
 
-//	MAKE_STD_ZVAL(tmp);
 	array_init(&tmp);
 	name_key = zend_string_init(ZEND_STRL("extension_ranges"),0);
 	zend_hash_update(properties, name_key, &tmp);
 
 	zend_merge_properties(instance, properties);
-	HashTable *ht =	Z_OBJPROP_P(instance);
 	zend_string_release(name_key);
-	//FREE_HASHTABLE(properties);
+	FREE_HASHTABLE(properties);
 }
 /* }}} */
 
@@ -637,6 +629,7 @@ static zend_function_entry php_protocolbuffers_descriptor_builder_methods[] = {
 	PHP_FE_END
 };
 
+
 void php_protocolbuffers_descriptor_builder_class(TSRMLS_D)
 {
 	zend_class_entry ce;
@@ -651,4 +644,8 @@ void php_protocolbuffers_descriptor_builder_class(TSRMLS_D)
 	zend_declare_property_null(php_protocol_buffers_descriptor_builder_class_entry, ZEND_STRL("extension_ranges"), ZEND_ACC_PUBLIC TSRMLS_CC);
 
 	PHP_PROTOCOLBUFFERS_REGISTER_NS_CLASS_ALIAS(PHP_PROTOCOLBUFFERS_NAMESPACE, "DescriptorBuilder", php_protocol_buffers_descriptor_builder_class_entry);
+
+	memcpy(&php_protocolbuffers_descriptor_builder_object_handlers, zend_get_std_object_handlers(), sizeof(php_protocolbuffers_descriptor_builder_object_handlers));
+	php_protocolbuffers_descriptor_builder_object_handlers.offset = XtOffsetOf(php_protocolbuffers_descriptor_builder, zo);
+	php_protocolbuffers_descriptor_builder_object_handlers.free_obj = php_protocolbuffers_descriptor_builder_free_storage;
 }

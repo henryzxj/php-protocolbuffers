@@ -71,6 +71,7 @@ int php_protocolbuffers_descriptor_properties_init(zval *object TSRMLS_DC)
 
 	zend_merge_properties(object, properties);
 	zend_string_release(name);
+	FREE_HASHTABLE(properties);
 	return 0;
 }
 
@@ -86,7 +87,7 @@ static const char* field_type_to_str(int field_type)
 
 static void php_protocolbuffers_descriptor_free_storage(php_protocolbuffers_descriptor *object TSRMLS_DC)
 {
-/*
+
 	if (object->name_len > 0) {
 		efree(object->name);
 	}
@@ -126,7 +127,7 @@ static void php_protocolbuffers_descriptor_free_storage(php_protocolbuffers_desc
 
 	zend_object_std_dtor(&object->zo TSRMLS_CC);
 	efree(object);
-	*/
+
 }
 
 zend_object *php_protocolbuffers_descriptor_new(zend_class_entry *ce TSRMLS_DC)
@@ -302,4 +303,8 @@ void php_protocolbuffers_descriptor_class(TSRMLS_D)
 	zend_declare_property_null(php_protocol_buffers_descriptor_class_entry, ZEND_STRS("fields")-1, ZEND_ACC_PROTECTED TSRMLS_CC);
 
 	PHP_PROTOCOLBUFFERS_REGISTER_NS_CLASS_ALIAS(PHP_PROTOCOLBUFFERS_NAMESPACE, "Descriptor", php_protocol_buffers_descriptor_class_entry);
+
+	memcpy(&php_protocolbuffers_descriptor_object_handlers, zend_get_std_object_handlers(), sizeof(php_protocolbuffers_descriptor_object_handlers));
+	php_protocolbuffers_descriptor_object_handlers.offset = XtOffsetOf(php_protocolbuffers_descriptor, zo);
+	php_protocolbuffers_descriptor_object_handlers.free_obj = (zend_object_free_obj_t)php_protocolbuffers_descriptor_free_storage;
 }

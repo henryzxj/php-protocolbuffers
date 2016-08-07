@@ -289,35 +289,19 @@ typedef struct{
 	zend_object zo;
 } php_protocolbuffers_unknown_field;
 
+typedef struct{
+	zend_object zo;
+} php_protocolbuffers_descriptor_builder;
+
 
 #  define PHP_PROTOCOLBUFFERS_STD_CREATE_OBJECT(STRUCT_NAME) \
 	STRUCT_NAME *intern;\
 	intern = (STRUCT_NAME*)ecalloc(1, sizeof(STRUCT_NAME) + zend_object_properties_size(ce));\
-	zend_object_std_init(&intern->zo, ce TSRMLS_CC);\
+	zend_object_std_init(&intern->zo, ce);\
 	object_properties_init(&intern->zo, ce);\
-	memcpy(&STRUCT_NAME##_object_handlers, zend_get_std_object_handlers(), sizeof(STRUCT_NAME##_object_handlers));\
-	STRUCT_NAME##_object_handlers.offset = XtOffsetOf(STRUCT_NAME, zo);\
-	STRUCT_NAME##_object_handlers.free_obj = (zend_object_free_obj_t)STRUCT_NAME##_free_storage;\
 	intern->zo.handlers = &STRUCT_NAME##_object_handlers;
 
-//#define PHP_PROTOCOLBUFFERS_GET_OBJECT(STRUCT_NAME, OBJECT) (STRUCT_NAME *)zend_object_store_get_object(OBJECT TSRMLS_CC);
-
 #define PHP_PROTOCOLBUFFERS_GET_OBJECT(STRUCT_NAME, OBJECT) (STRUCT_NAME *)((char*)(Z_OBJ_P(OBJECT)) - XtOffsetOf(STRUCT_NAME, zo));
-
-/* {{{ php_mustache_ast_object_fetch_object */
-
-//static inline struct php_obj_MustacheAST * php_mustache_ast_fetch_object(zend_object * obj TSRMLS_DC)
-//{
-//   return (struct php_obj_MustacheAST *)((char*)(obj) - XtOffsetOf(struct php_obj_MustacheAST, std));
-//}
-//
-//struct php_obj_MustacheAST * php_mustache_ast_object_fetch_object(zval * zv TSRMLS_DC)
-//{
-//   return php_mustache_ast_fetch_object(Z_OBJ_P(zv) TSRMLS_CC);
-//}
-
-
-
 
 
 

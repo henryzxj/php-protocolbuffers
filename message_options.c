@@ -46,7 +46,7 @@ int php_protocolbuffers_message_options_init_properties(zval *object TSRMLS_DC)
 
 	zend_merge_properties(object, properties);
 	zend_string_release(extensions_key);
-	FREE_HASHTABLE(properties);
+	//FREE_HASHTABLE(properties);
 	return 0;
 }
 

@@ -449,4 +449,9 @@ void php_protocolbuffers_unknown_field_class(TSRMLS_D)
 #endif
 
 	PHP_PROTOCOLBUFFERS_REGISTER_NS_CLASS_ALIAS(PHP_PROTOCOLBUFFERS_NAMESPACE, "UnknownField", php_protocol_buffers_unknown_field_class_entry);
+
+
+	memcpy(&php_protocolbuffers_unknown_field_object_handlers, zend_get_std_object_handlers(), sizeof(php_protocolbuffers_unknown_field_object_handlers));
+	php_protocolbuffers_unknown_field_object_handlers.offset = XtOffsetOf(php_protocolbuffers_unknown_field, zo);
+	php_protocolbuffers_unknown_field_object_handlers.free_obj = php_protocolbuffers_unknown_field_free_storage;
 }

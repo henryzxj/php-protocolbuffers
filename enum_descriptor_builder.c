@@ -115,5 +115,4 @@ void php_protocolbuffers_enum_descriptor_builder_class(TSRMLS_D)
 	PHP_PROTOCOLBUFFERS_REGISTER_NS_CLASS_ALIAS(PHP_PROTOCOLBUFFERS_NAMESPACE, "EnumDescriptorBuilder", php_protocol_buffers_enum_descriptor_builder_class_entry);
 
 	zend_declare_property_null(php_protocol_buffers_enum_descriptor_builder_class_entry, ZEND_STRS("values")-1, ZEND_ACC_PROTECTED TSRMLS_CC);
-
 }

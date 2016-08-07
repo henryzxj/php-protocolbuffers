@@ -293,4 +293,8 @@ void php_protocolbuffers_extension_registry_class(TSRMLS_D)
 	php_protocol_buffers_extension_registry_class_entry->ce_flags |= ZEND_ACC_FINAL;
 
 	PHP_PROTOCOLBUFFERS_REGISTER_NS_CLASS_ALIAS(PHP_PROTOCOLBUFFERS_NAMESPACE, "ExtensionRegistry", php_protocol_buffers_extension_registry_class_entry);
+
+	memcpy(&php_protocolbuffers_extension_registry_object_handlers, zend_get_std_object_handlers(), sizeof(php_protocolbuffers_extension_registry_object_handlers));
+	php_protocolbuffers_extension_registry_object_handlers.offset = XtOffsetOf(php_protocolbuffers_extension_registry, zo);
+	php_protocolbuffers_extension_registry_object_handlers.free_obj = php_protocolbuffers_extension_registry_free_storage;
 }

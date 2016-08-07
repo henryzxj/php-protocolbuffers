@@ -48,7 +48,7 @@ static int php_protocolbuffers_field_descriptor_process_params(zval *zv TSRMLS_D
 		zend_string * name_key=NULL;
 
 		instance = va_arg(args, zval**);
-
+		HashTable *ht = Z_OBJPROP_P(*instance);
 #define PHP_PROTOCOLBUFFERS_PROCESS_BOOL \
 {\
 	name_key =zend_mangle_property_name((char*)"*", 1, (char*)key, key_length, 0);\
@@ -67,14 +67,17 @@ static int php_protocolbuffers_field_descriptor_process_params(zval *zv TSRMLS_D
 			}
 
 			if (Z_LVAL_P(zv) > MAX_FIELD_TYPE) {
+				zend_string_release(name_key);
 				zend_throw_exception_ex(spl_ce_InvalidArgumentException, 0 TSRMLS_CC, "ProtocolBuffersFieldDescriptor: type shoud be in %d - %d", 1, MAX_FIELD_TYPE);
 				return 1;
 			}
 			if (Z_LVAL_P(zv) < 1) {
+				zend_string_release(name_key);
 				zend_throw_exception_ex(spl_ce_InvalidArgumentException, 0 TSRMLS_CC, "ProtocolBuffersFieldDescriptor: type shoud be in %d - %d", 1, MAX_FIELD_TYPE);
 				return 1;
 			}
 			if (Z_LVAL_P(zv) == TYPE_GROUP) {
+				zend_string_release(name_key);
 				zend_throw_exception_ex(spl_ce_InvalidArgumentException, 0 TSRMLS_CC, "ProtocolBuffersFieldDescriptor: type shoud be in %d - %d. group type does not supported", 1, MAX_FIELD_TYPE);
 				return 1;
 			}
@@ -82,9 +85,10 @@ static int php_protocolbuffers_field_descriptor_process_params(zval *zv TSRMLS_D
 			name_key = zend_mangle_property_name((char*)"*", 1, (char*)key, key_length, 0);
 //			MAKE_STD_ZVAL(value);
 			ZVAL_LONG(&value, Z_LVAL_P(zv));
+
 			zend_hash_update(Z_OBJPROP_P(*instance), name_key, &value);
 			//efree(name);
-			zend_string_release(name_key);
+			//zend_string_release(name_key);
 
 		} else if (strcmp(key, "required") == 0) {
 			PHP_PROTOCOLBUFFERS_PROCESS_BOOL;
@@ -184,10 +188,10 @@ ZEND_END_ARG_INFO()
 */
 PHP_METHOD(protocolbuffers_field_descriptor, __construct)
 {
-	zval *params = NULL, *instance = getThis();
+	zval *params, *instance = getThis();
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,
-		"|a", &params) == FAILURE) {
+		"a", &params) == FAILURE) {
 		return;
 	}
 
