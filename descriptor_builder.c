@@ -58,15 +58,6 @@ static php_protocolbuffers_descriptor_builder *php_protocolbuffers_fetch_object(
 	return (php_protocolbuffers_descriptor_builder *)((char*)(object) - XtOffsetOf(php_protocolbuffers_descriptor_builder, zo));
 }
 
-static void php_protocolbuffers_descriptor_builder_free_storage(zend_object *object TSRMLS_DC)
-{
-	php_protocolbuffers_descriptor_builder * intern = php_protocolbuffers_fetch_object(object);
-	zend_object_std_dtor(&intern->zo);
-	efree(object);
-	efree(intern);
-}
-
-
 
 zend_object *php_protocolbuffers_descriptor_builder_new(zend_class_entry *ce TSRMLS_DC)
 {
@@ -394,32 +385,60 @@ PHP_METHOD(protocolbuffers_descriptor_builder, __construct)
 {
 	zval *instance = getThis();
 	HashTable *properties = NULL;
-	zval tmp;
-	zend_string *name_key=NULL;
+	zval name,fields,options,extension_ranges;
+	zend_string *name_key,*fields_key,*options_key,*extension_ranges_key;
 
 	ALLOC_HASHTABLE(properties);
 	zend_hash_init(properties, 0, NULL, ZVAL_PTR_DTOR, 0);
 
-	ZVAL_NULL(&tmp);
+	ZVAL_UNDEF(&name);
 	name_key = zend_string_init(ZEND_STRL("name"),0);
-	zend_hash_update(properties, name_key,&tmp);
+	zend_hash_update(properties, name_key,&name);
+	zend_string_delref(name_key);
+	zend_string_release(name_key);
 
-	array_init(&tmp);
-	name_key= zend_string_init(ZEND_STRL("fields"),0);
-	zend_hash_update(properties, name_key, &tmp);
+	array_init(&fields);
+	fields_key= zend_string_init(ZEND_STRL("fields"),0);
+	zend_hash_update(properties, fields_key, &fields);
+	zend_string_delref(fields_key);
+	zend_string_release(fields_key);
 
-	object_init_ex(&tmp, php_protocol_buffers_message_options_class_entry);
-	php_protocolbuffers_message_options_init_properties(&tmp TSRMLS_CC);
-	name_key = zend_string_init(ZEND_STRL("options"),0);
-	zend_hash_update(properties, name_key, &tmp);
+	object_init_ex(&options, php_protocol_buffers_message_options_class_entry);
+	php_protocolbuffers_message_options_init_properties(&options TSRMLS_CC);
+	options_key = zend_string_init(ZEND_STRL("options"),0);
+	zend_hash_update(properties, options_key, &options);
 
-	array_init(&tmp);
-	name_key = zend_string_init(ZEND_STRL("extension_ranges"),0);
-	zend_hash_update(properties, name_key, &tmp);
+	zend_string_delref(options_key);
+	zend_string_release(options_key);
+
+	array_init(&extension_ranges);
+	extension_ranges_key = zend_string_init(ZEND_STRL("extension_ranges"),0);
+	zend_hash_update(properties, extension_ranges_key, &extension_ranges);
+	zval_ptr_dtor(&extension_ranges);
+
+
 
 	zend_merge_properties(instance, properties);
-	zend_string_release(name_key);
+
 	FREE_HASHTABLE(properties);
+	zval_ptr_dtor(&options);
+	zval_ptr_dtor(&name);
+	zval_ptr_dtor(&fields);
+	zend_string_delref(extension_ranges_key);
+	zend_string_release(extension_ranges_key);
+}
+/* }}} */
+
+
+/* {{{ proto ProtocolBuffers_DescriptorBuilder ProtocolBuffers_DescriptorBuilder::__free_storage()
+*/
+static void php_protocolbuffers_descriptor_builder_free_storage(zend_object *object TSRMLS_DC)
+{
+//	php_protocolbuffers_descriptor_builder * intern = php_protocolbuffers_fetch_object(object);
+//	zend_object_std_dtor(&intern->zo);
+	efree(object);
+//	efree(intern);
+//	zend_object_std_dtor(object);
 }
 /* }}} */
 
@@ -581,7 +600,7 @@ PHP_METHOD(protocolbuffers_descriptor_builder, addExtensionRange)
 					zend_throw_exception_ex(spl_ce_InvalidArgumentException, 0 TSRMLS_CC, "extension range expects long key.");
 					return;
 				break;
-				case HASH_KEY_IS_LONG:				
+				case HASH_KEY_IS_LONG:
 					if (begin <= num_key && num_key <= end) {
 						zend_string_release(fields_name);
 						zend_string_release(string_key_name);
