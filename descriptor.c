@@ -85,49 +85,51 @@ static const char* field_type_to_str(int field_type)
 	}
 }
 
-static void php_protocolbuffers_descriptor_free_storage(php_protocolbuffers_descriptor *object TSRMLS_DC)
-{
+static php_protocolbuffers_descriptor *php_protocolbuffers_fetch_object(zend_object *object) {
+	return (php_protocolbuffers_descriptor *)((char*)(object) - XtOffsetOf(php_protocolbuffers_descriptor, zo));
+}
 
-	if (object->name_len > 0) {
-		efree(object->name);
+static void php_protocolbuffers_descriptor_free_storage(zend_object *object TSRMLS_DC)
+{
+	php_protocolbuffers_descriptor * intern = php_protocolbuffers_fetch_object(object);
+
+	if (intern->name_len > 0) {
+		efree(intern->name);
 	}
 
-	if (object->container != NULL && object->free_container < 1) {
+	if (intern->container != NULL && intern->free_container < 1) {
 		int i;
 
-		for (i = 0; i < (object->container)->size; i++) {
-			if ((object->container)->scheme[i].original_name != NULL) {
-				efree((object->container)->scheme[i].original_name);
+		for (i = 0; i < (intern->container)->size; i++) {
+			if ((intern->container)->scheme[i].original_name != NULL) {
+				efree((intern->container)->scheme[i].original_name);
 			}
-			if ((object->container)->scheme[i].name != NULL) {
-				efree((object->container)->scheme[i].name);
+			if ((intern->container)->scheme[i].name != NULL) {
+				efree((intern->container)->scheme[i].name);
 			}
-			if ((object->container)->scheme[i].mangled_name != NULL) {
-				efree((object->container)->scheme[i].mangled_name);
+			if ((intern->container)->scheme[i].mangled_name != NULL) {
+				efree((intern->container)->scheme[i].mangled_name);
 			}
-			if ((object->container)->scheme[i].default_value != NULL) {
-				zval_ptr_dtor((object->container)->scheme[i].default_value);
+			if ((intern->container)->scheme[i].default_value != NULL) {
+				zval_ptr_dtor((intern->container)->scheme[i].default_value);
 			}
 		}
 
-		if (object->container->single_property_name != NULL) {
-			efree(object->container->single_property_name);
+		if (intern->container->single_property_name != NULL) {
+			efree(intern->container->single_property_name);
 		}
 
-		if (object->container->scheme != NULL) {
-			efree(object->container->scheme);
+		if (intern->container->scheme != NULL) {
+			efree(intern->container->scheme);
 		}
 
-		if (object->container->extensions != NULL) {
-			efree(object->container->extensions);
+		if (intern->container->extensions != NULL) {
+			efree(intern->container->extensions);
 		}
 
-		efree(object->container);
+		efree(intern->container);
 	}
-
-	zend_object_std_dtor(&object->zo TSRMLS_CC);
-	efree(object);
-
+	zend_object_std_dtor(&intern->zo);
 }
 
 zend_object *php_protocolbuffers_descriptor_new(zend_class_entry *ce TSRMLS_DC)

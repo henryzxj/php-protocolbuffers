@@ -35,6 +35,7 @@ int php_protocolbuffers_message_options_init_properties(zval *object TSRMLS_DC)
 {
 	zval tmp;
 	zend_class_entry *entry = Z_OBJCE_P(object);
+	array_init(&tmp);
 	zend_update_property(entry,object ,ZEND_STRL("extensions"),&tmp);
 	zval_ptr_dtor(&tmp);
 	return 0;
@@ -89,7 +90,7 @@ void php_protocolbuffers_message_options_class(TSRMLS_D)
 
 	INIT_CLASS_ENTRY(ce, "ProtocolBuffersMessageOptions", php_protocolbuffers_message_options_methods);
 	php_protocol_buffers_message_options_class_entry = zend_register_internal_class(&ce TSRMLS_CC);
-	zend_declare_property_null(php_protocol_buffers_message_options_class_entry, ZEND_STRL("extensions"), ZEND_ACC_PUBLIC TSRMLS_CC);
+	//zend_declare_property_null(php_protocol_buffers_message_options_class_entry, ZEND_STRL("extensions"), ZEND_ACC_PUBLIC TSRMLS_CC);
 
 	PHP_PROTOCOLBUFFERS_REGISTER_NS_CLASS_ALIAS(PHP_PROTOCOLBUFFERS_NAMESPACE, "MessageOptions", php_protocol_buffers_message_options_class_entry);
 }

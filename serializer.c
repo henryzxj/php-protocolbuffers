@@ -509,7 +509,7 @@ static void php_protocolbuffers_encode_element(INTERNAL_FUNCTION_PARAMETERS, php
 	char *name = {0};
 	int name_len = 0;
 
-	if (container->use_single_property < 1) {
+	if (container->use_single_property > 1) {
 		name = scheme->mangled_name;
 		name_len = scheme->mangled_name_len;
 	} else {
@@ -517,7 +517,18 @@ static void php_protocolbuffers_encode_element(INTERNAL_FUNCTION_PARAMETERS, php
 		name_len = scheme->name_len;
 	}
 
+	zend_string *k;
+	zval *v;
+	ZEND_HASH_FOREACH_STR_KEY_VAL(hash,k,v){
+			if(k){
+				zval m;
+				ZVAL_STR(&m,k);
+				php_var_dump(&m,1);
+			}
+	}ZEND_HASH_FOREACH_END();
+
 	zend_string *name_key = zend_string_init(name,name_len,0);
+
 	if ((tmp=zend_hash_find(hash, name_key)) != NULL) {
 		php_protocolbuffers_serializer *n_ser = NULL;
 
@@ -767,7 +778,7 @@ int php_protocolbuffers_encode_message(INTERNAL_FUNCTION_PARAMETERS, zval *klass
 	}
 
 	for (i = 0; i < container->size; i++) {
-		scheme = &(container->scheme[i]);
+		scheme = &(container->scheme[i]);//scheme->name misformat,bug
 
 		if (container->use_wakeup_and_sleep > 0) {
 			if (scheme->skip > 0) {

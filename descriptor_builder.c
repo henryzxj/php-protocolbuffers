@@ -40,15 +40,11 @@ static zend_object_handlers php_protocolbuffers_descriptor_builder_object_handle
 int php_protocolbuffers_field_descriptor_get_property(HashTable *hash, const char *name, size_t name_len, zval **result TSRMLS_DC)
 {
 	zend_string *key;
-
-	size_t key_len;
 	zval *resval;
-
-	key = zend_mangle_property_name("*", 1, (char*)name, name_len, 0);
+	key = zend_mangle_property_name("*", 1, name, name_len, 0);
 	if ((resval=zend_hash_find(hash, key)) != NULL) {
 		*result = resval;
 	}
-
 	zend_string_release(key);
 	return 0;
 }
@@ -201,12 +197,21 @@ int php_protocolbuffers_init_scheme_with_zval(php_protocolbuffers_scheme *scheme
 	int tsize = 0;
 	char *mangle;
 	int mangle_len;
-	zval *def;
+	zval def;
 
 	scheme->ce = NULL;
 	scheme->is_extension = 0;
 	scheme->tag = tag;
-
+	HashTable *props = Z_OBJPROP_P(element);
+	zend_string *key;
+	zval *val;
+	ZEND_HASH_FOREACH_STR_KEY_VAL(props,key,val){
+		if(key){
+			zval member;
+			ZVAL_STR(&member,key);
+			php_var_dump(&member,1);
+		}
+	}ZEND_HASH_FOREACH_END();
 	php_protocolbuffers_field_descriptor_get_property(Z_OBJPROP_P(element), ZEND_STRL("type"), &tmp TSRMLS_CC);
 	if (Z_TYPE_P(tmp) != IS_LONG) {
 		convert_to_long(tmp);
@@ -271,32 +276,37 @@ int php_protocolbuffers_init_scheme_with_zval(php_protocolbuffers_scheme *scheme
 	}
 
 
-	php_protocolbuffers_field_descriptor_get_property(Z_OBJPROP_P(element), ZEND_STRS("default"), &tmp TSRMLS_CC);
+	php_protocolbuffers_field_descriptor_get_property(Z_OBJPROP_P(element), ZEND_STRL("default"), &tmp TSRMLS_CC);
 	/* TODO(chobie): check types */
 
-//	MAKE_STD_ZVAL(def);
-	ZVAL_ZVAL(def, tmp, 1, 0);
-	scheme->default_value = def;
 
-	php_protocolbuffers_field_descriptor_get_property(Z_OBJPROP_P(element), ZEND_STRS("required"), &tmp TSRMLS_CC);
+	php_var_dump(tmp,1);
+	if(Z_TYPE_P(tmp) !=IS_NULL){
+		ZVAL_ZVAL(&def, tmp, 1, 0);
+	}else{
+		ZVAL_UNDEF(&def);
+	}
+	scheme->default_value = &def;
+
+	php_protocolbuffers_field_descriptor_get_property(Z_OBJPROP_P(element), ZEND_STRL("required"), &tmp TSRMLS_CC);
 	if (Z_TYPE_P(tmp) != IS_LONG) {
 		convert_to_long(tmp);
 	}
 	scheme->required = Z_LVAL_P(tmp);
 
-	php_protocolbuffers_field_descriptor_get_property(Z_OBJPROP_P(element), ZEND_STRS("optional"), &tmp TSRMLS_CC);
+	php_protocolbuffers_field_descriptor_get_property(Z_OBJPROP_P(element), ZEND_STRL("optional"), &tmp TSRMLS_CC);
 	if (Z_TYPE_P(tmp) != IS_LONG) {
 		convert_to_long(tmp);
 	}
 	scheme->optional = Z_LVAL_P(tmp);
 
-	php_protocolbuffers_field_descriptor_get_property(Z_OBJPROP_P(element), ZEND_STRS("repeated"), &tmp TSRMLS_CC);
+	php_protocolbuffers_field_descriptor_get_property(Z_OBJPROP_P(element), ZEND_STRL("repeated"), &tmp TSRMLS_CC);
 	if (Z_TYPE_P(tmp) != IS_LONG) {
 		convert_to_long(tmp);
 	}
 	scheme->repeated = Z_LVAL_P(tmp);
 
-	php_protocolbuffers_field_descriptor_get_property(Z_OBJPROP_P(element), ZEND_STRS("packable"), &tmp TSRMLS_CC);
+	php_protocolbuffers_field_descriptor_get_property(Z_OBJPROP_P(element), ZEND_STRL("packable"), &tmp TSRMLS_CC);
 	if (Z_TYPE_P(tmp) != IS_LONG) {
 		convert_to_long(tmp);
 	}
@@ -332,7 +342,6 @@ static int php_protocolbuffers_build_fields(zval *fields, php_protocolbuffers_de
 	) {
 		if (!php_protocolbuffers_init_scheme_with_zval(&ischeme[n], pos, element TSRMLS_CC)) {
 			efree(ischeme);
-
 			descriptor->container->size = 0;
 			descriptor->container->scheme = NULL;
 			return 0;
@@ -346,37 +355,35 @@ static void php_protocolbuffers_build_field_descriptor(php_protocolbuffers_descr
 {
 	int n = 0;
 	php_protocolbuffers_scheme *ischeme;
-	zval *arrval = NULL;
-	zval *tmp = NULL, *value = NULL;
+	zval arrval,tmp, value;
 
 	if (descriptor->container->size < 1) {
 		return;
 	}
 
-//	MAKE_STD_ZVAL(arrval);
-	array_init(arrval);
+	array_init(&arrval);
 	for (n = 0; n < descriptor->container->size; n++) {
 		ischeme = &(descriptor->container->scheme[n]);
 
 //		MAKE_STD_ZVAL(tmp);
-		object_init_ex(tmp, php_protocol_buffers_field_descriptor_class_entry);
+		object_init_ex(&tmp, php_protocol_buffers_field_descriptor_class_entry);
 
 //		MAKE_STD_ZVAL(value);
-		ZVAL_STRING(value, ischeme->name);
-		php_protocolbuffers_set_protected_property(tmp, ZEND_STRL("name"), value TSRMLS_CC);
+		ZVAL_STRING(&value, ischeme->name);
+		php_protocolbuffers_set_protected_property(&tmp, ZEND_STRL("name"), &value TSRMLS_CC);
 
 //		MAKE_STD_ZVAL(value);
-		ZVAL_LONG(value, ischeme->type);
-		php_protocolbuffers_set_protected_property(tmp, ZEND_STRL("type"), value TSRMLS_CC);
+		ZVAL_LONG(&value, ischeme->type);
+		php_protocolbuffers_set_protected_property(&tmp, ZEND_STRL("type"), &value TSRMLS_CC);
 
 //		MAKE_STD_ZVAL(value);
-		ZVAL_BOOL(value, ischeme->is_extension);
-		php_protocolbuffers_set_protected_property(tmp, ZEND_STRL("extension"), value TSRMLS_CC);
+		ZVAL_BOOL(&value, ischeme->is_extension);
+		php_protocolbuffers_set_protected_property(&tmp, ZEND_STRL("extension"), &value TSRMLS_CC);
 
-		zend_hash_index_update(Z_ARRVAL_P(arrval), ischeme->tag, tmp);
+		zend_hash_index_update(Z_ARRVAL_P(&arrval), ischeme->tag, &tmp);
 	}
 
-	php_protocolbuffers_set_protected_property(result, ZEND_STRL("fields"), arrval TSRMLS_CC);
+	php_protocolbuffers_set_protected_property(result, ZEND_STRL("fields"), &arrval TSRMLS_CC);
 }
 
 /* {{{ proto ProtocolBuffers_DescriptorBuilder ProtocolBuffers_DescriptorBuilder::__construct()
