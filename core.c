@@ -460,15 +460,17 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 				php_protocolbuffers_get_scheme_container(s->ce->name, &c_container TSRMLS_CC);
 
 				if (container->use_single_property < 1) {
-					name        = s->mangled_name;
-					name_length = s->mangled_name_len;
-					name_hash   = s->mangled_name_h;
+//					name        = s->mangled_name;
+//					name_length = s->mangled_name_len;
+//					name_hash   = s->mangled_name_h;
+					name_key = s->mangled_name_key;
 				} else {
-					name        = s->name;
-					name_length = s->name_len;
-					name_hash   = s->name_h;
+//					name        = s->name;
+//					name_length = s->name_len;
+//					name_hash   = s->name_h;
+					name_key = s->name_key;
 				}
-				name_key = zend_string_init(name,name_length,0);
+//				name_key = zend_string_init(name,name_length,0);
 				if (prior_scheme != NULL && prior_scheme == s && !s->repeated) {
 					/* NOTE: some protobuf implementation will split child message into each filed. */
 					zval *tt;
@@ -944,7 +946,7 @@ void php_protocolbuffers_execute_sleep(zval *obj, php_protocolbuffers_scheme_con
 				}
 
 				scheme = &(container->scheme[i]);
-				if (strcmp(scheme->name, Z_STRVAL_P(entry)) == 0) {
+				if (strcmp(ZSTR_VAL(scheme->name_key), Z_STRVAL_P(entry)) == 0) {
 					scheme->skip = 0;
 				}
 			}
@@ -990,8 +992,8 @@ int php_protocolbuffers_properties_init(zval *object, zend_class_entry *ce TSRML
 					ZVAL_NULL(pp);
 				}
 			}
-			zend_string *original_name_key = zend_string_init(scheme->original_name, scheme->original_name_len,0);
-			zend_hash_update(properties, original_name_key, pp);
+			//zend_string *original_name_key = zend_string_init(scheme->original_name, scheme->original_name_len,0);
+			zend_hash_update(properties, scheme->original_name_key, pp);
 		}
 	}
 

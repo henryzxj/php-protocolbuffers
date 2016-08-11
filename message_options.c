@@ -54,10 +54,10 @@ PHP_METHOD(protocolbuffers_message_options, getExtension)
 	long name_len = 0;
 	zend_string *name_key = NULL;
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,
-		"s", &name, &name_len) == FAILURE) {
+		"S", &name_key) == FAILURE) {
 		return;
 	}
-	name_key = zend_string_init(name,name_len,0);
+//	name_key = zend_string_init(name,name_len,0);
 	options = pb_zend_read_property(php_protocol_buffers_descriptor_builder_class_entry, getThis(), ZEND_STRL("extensions"), 1 TSRMLS_CC);
 
 	if ((result=zend_hash_find(Z_ARRVAL_P(options), name_key)) == NULL) {

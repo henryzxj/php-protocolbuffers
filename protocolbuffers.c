@@ -365,14 +365,17 @@ PHP_RSHUTDOWN_FUNCTION(protocolbuffers)
 							zend_hash_move_forward_ex(PBG(messages), &pos)
 			) {
 				for (i = 0; i < (element)->size; i++) {
-					if ((element)->scheme[i].original_name != NULL) {
-						efree((element)->scheme[i].original_name);
+					if ((element)->scheme[i].original_name_key != NULL) {
+//						efree((element)->scheme[i].original_name);
+						zend_string_release((element)->scheme[i].original_name_key);
 					}
-					if ((element)->scheme[i].name != NULL) {
-						efree((element)->scheme[i].name);
+					if ((element)->scheme[i].name_key != NULL) {
+//						efree((element)->scheme[i].name);
+						zend_string_release((element)->scheme[i].name_key);
 					}
-					if ((element)->scheme[i].mangled_name != NULL) {
-						efree((element)->scheme[i].mangled_name);
+					if ((element)->scheme[i].mangled_name_key != NULL) {
+//						efree((element)->scheme[i].mangled_name);
+						zend_string_release((element)->scheme[i].mangled_name_key);
 					}
 					if ((element)->scheme[i].default_value != NULL) {
 						zval_ptr_dtor(((element)->scheme[i].default_value));

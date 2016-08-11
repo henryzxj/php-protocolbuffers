@@ -58,20 +58,8 @@ static const char *fields_map[] = {
 int php_protocolbuffers_descriptor_properties_init(zval *object TSRMLS_DC)
 {
 	zval pp;
-	HashTable *properties;
-
-	ALLOC_HASHTABLE(properties);
-	zend_hash_init(properties, 0, NULL, ZVAL_PTR_DTOR, 0);
-
-	//MAKE_STD_ZVAL(pp);
 	array_init(&pp);
-
-	zend_string *name = zend_string_init(ZEND_STRL("fields"),0);
-	zend_hash_update(properties, name, &pp);
-
-	zend_merge_properties(object, properties);
-	zend_string_release(name);
-	FREE_HASHTABLE(properties);
+	zend_update_property(Z_OBJCE_P(object),object,ZEND_STRL("fields"),&pp);
 	return 0;
 }
 
@@ -101,14 +89,17 @@ static void php_protocolbuffers_descriptor_free_storage(zend_object *object TSRM
 		int i;
 
 		for (i = 0; i < (intern->container)->size; i++) {
-			if ((intern->container)->scheme[i].original_name != NULL) {
-				efree((intern->container)->scheme[i].original_name);
+			if ((intern->container)->scheme[i].original_name_key != NULL) {
+//				efree((intern->container)->scheme[i].original_name);
+				zend_string_release((intern->container)->scheme[i].original_name_key);
 			}
-			if ((intern->container)->scheme[i].name != NULL) {
-				efree((intern->container)->scheme[i].name);
+			if ((intern->container)->scheme[i].name_key != NULL) {
+//				efree((intern->container)->scheme[i].name);
+				zend_string_release((intern->container)->scheme[i].name_key);
 			}
-			if ((intern->container)->scheme[i].mangled_name != NULL) {
-				efree((intern->container)->scheme[i].mangled_name);
+			if ((intern->container)->scheme[i].mangled_name_key != NULL) {
+//				efree((intern->container)->scheme[i].mangled_name);
+				zend_string_release((intern->container)->scheme[i].mangled_name_key);
 			}
 			if ((intern->container)->scheme[i].default_value != NULL) {
 				zval_ptr_dtor((intern->container)->scheme[i].default_value);
@@ -243,7 +234,7 @@ PHP_METHOD(protocolbuffers_descriptor, dump)
 			ischeme = &(descriptor->container->scheme[n]);
 			php_printf("    \"%d\": {\n", ischeme->tag);
 			php_printf("      type: \"%s\",\n", field_type_to_str(ischeme->type));
-			php_printf("      name: \"%s\",\n", ischeme->name);
+			php_printf("      name: \"%s\",\n", ZSTR_VAL(ischeme->name_key));
 			if (ischeme->type == TYPE_MESSAGE && ischeme->ce != NULL) {
 				php_printf("      message: \"%s\",\n", ischeme->ce->name);
 			}

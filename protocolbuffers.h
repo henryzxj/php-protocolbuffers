@@ -157,14 +157,17 @@ zend_class_entry *php_protocolbuffers_get_exception_base(TSRMLS_D);
 typedef struct php_protocolbuffers_scheme
 {
 	int tag;
-	char *name;
-	int name_len;
-	ulong name_h;
-	char *original_name;
-	int original_name_len;
-	char *mangled_name;
-	int mangled_name_len;
-	ulong mangled_name_h;
+//	char *name;
+//	int name_len;
+//	ulong name_h;
+	zend_string *name_key;
+//	char *original_name;
+//	int original_name_len;
+	zend_string *original_name_key;
+//	char *mangled_name;
+//	int mangled_name_len;
+//	ulong mangled_name_h;
+	zend_string *mangled_name_key;
 	int magic_type;
 	/* TODO: use flags */
 	int type;

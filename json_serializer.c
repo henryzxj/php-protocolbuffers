@@ -47,7 +47,7 @@ static int _json_serializer_float(
 	if (scheme->repeated) {
 		add_next_index_double(result, value);
 	} else {
-		add_assoc_double_ex(result, scheme->original_name, scheme->original_name_len, value);
+		add_assoc_double_ex(result, ZSTR_VAL(scheme->original_name_key), ZSTR_LEN(scheme->original_name_key), value);
 	}
 
 	return 0;
@@ -65,7 +65,7 @@ static int _json_serializer_double(
 	if (scheme->repeated) {
 		add_next_index_double(result, value);
 	} else {
-		add_assoc_double_ex(result, scheme->original_name, scheme->original_name_len, value);
+		add_assoc_double_ex(result, ZSTR_VAL(scheme->original_name_key), ZSTR_LEN(scheme->original_name_key), value);
 	}
 
 	return 0;
@@ -96,7 +96,7 @@ static int _json_serializer_repeated_end(
 {
 	zval *outer = (zval*)opaque;
 
-	add_assoc_zval_ex(value, scheme->original_name, scheme->original_name_len, outer);
+	add_assoc_zval_ex(value, ZSTR_VAL(scheme->original_name_key), ZSTR_LEN(scheme->original_name_key), outer);
 
 	return 0;
 }
@@ -113,7 +113,7 @@ static int _json_serializer_enum(
 	if (scheme->repeated) {
 		add_next_index_long(result, value);
 	} else {
-		add_assoc_long_ex(result, scheme->original_name, scheme->original_name_len, value);
+		add_assoc_long_ex(result, ZSTR_VAL(scheme->original_name_key), ZVAL_LEN(scheme->original_name_key), value);
 	}
 
 	return 0;
@@ -131,7 +131,7 @@ static int _json_serializer_sint32(
 	if (scheme->repeated) {
 		add_next_index_long(result, value);
 	} else {
-		add_assoc_long_ex(result, scheme->original_name, scheme->original_name_len, value);
+		add_assoc_long_ex(result, ZSTR_VAL(scheme->original_name_key), ZVAL_LEN(scheme->original_name_key), value);
 	}
 
 	return 0;
@@ -149,7 +149,7 @@ static int _json_serializer_sint64(
 	if (scheme->repeated) {
 		add_next_index_long(result, value);
 	} else {
-		add_assoc_long_ex(result, scheme->original_name, scheme->original_name_len, value);
+		add_assoc_long_ex(result, ZSTR_VAL(scheme->original_name_key), ZVAL_LEN(scheme->original_name_key), value);
 	}
 
 	return 0;
@@ -167,7 +167,7 @@ static int _json_serializer_fixed64(
 	if (scheme->repeated) {
 		add_next_index_long(result, value);
 	} else {
-		add_assoc_long_ex(result, scheme->original_name, scheme->original_name_len, value);
+		add_assoc_long_ex(result, ZSTR_VAL(scheme->original_name_key), ZVAL_LEN(scheme->original_name_key), value);
 	}
 
 	return 0;
@@ -185,7 +185,7 @@ static int _json_serializer_sfixed32(
 	if (scheme->repeated) {
 		add_next_index_long(result, value);
 	} else {
-		add_assoc_long_ex(result, scheme->original_name, scheme->original_name_len, value);
+		add_assoc_long_ex(result, ZSTR_VAL(scheme->original_name_key), ZVAL_LEN(scheme->original_name_key), value);
 	}
 
 	return 0;
@@ -203,7 +203,7 @@ static int _json_serializer_sfixed64(
 	if (scheme->repeated) {
 		add_next_index_long(result, value);
 	} else {
-		add_assoc_long_ex(result, scheme->original_name, scheme->original_name_len, value);
+		add_assoc_long_ex(result, ZSTR_VAL(scheme->original_name_key), ZVAL_LEN(scheme->original_name_key), value);
 	}
 
 	return 0;
@@ -221,7 +221,7 @@ static int _json_serializer_fixed32(
 	if (scheme->repeated) {
 		add_next_index_long(result, value);
 	} else {
-		add_assoc_long_ex(result, scheme->original_name, scheme->original_name_len, value);
+		add_assoc_long_ex(result, ZSTR_VAL(scheme->original_name_key), ZVAL_LEN(scheme->original_name_key), value);
 	}
 
 	return 0;
@@ -239,7 +239,7 @@ static int _json_serializer_uint32(
 	if (scheme->repeated) {
 		add_next_index_long(result, value);
 	} else {
-		add_assoc_long_ex(result, scheme->original_name, scheme->original_name_len, value);
+		add_assoc_long_ex(result, ZSTR_VAL(scheme->original_name_key), ZVAL_LEN(scheme->original_name_key), value);
 	}
 
 	return 0;
@@ -257,7 +257,7 @@ static int _json_serializer_bool(
 	if (scheme->repeated) {
 		add_next_index_bool(result, value);
 	} else {
-		add_assoc_bool_ex(result, scheme->original_name, scheme->original_name_len, value);
+		add_assoc_bool_ex(result, ZSTR_VAL(scheme->original_name_key), ZVAL_LEN(scheme->original_name_key), value);
 	}
 
 	return 0;
@@ -276,7 +276,7 @@ static int _json_serializer_int64(
 	if (scheme->repeated) {
 		add_next_index_long(result, value);
 	} else {
-		add_assoc_long_ex(result, scheme->original_name, scheme->original_name_len, value);
+		add_assoc_long_ex(result, ZSTR_VAL(scheme->original_name_key), ZVAL_LEN(scheme->original_name_key), value);
 	}
 
 	return 0;
@@ -294,7 +294,7 @@ static int _json_serializer_uint64(
 	if (scheme->repeated) {
 		add_next_index_long(result, value);
 	} else {
-		add_assoc_long_ex(result, scheme->original_name, scheme->original_name_len, value);
+		add_assoc_long_ex(result, ZSTR_VAL(scheme->original_name_key), ZVAL_LEN(scheme->original_name_key), value);
 	}
 
 	return 0;
@@ -313,7 +313,7 @@ static int _json_serializer_int32(
 	if (scheme->repeated) {
 		add_next_index_long(result, value);
 	} else {
-		add_assoc_long_ex(result, scheme->original_name, scheme->original_name_len, value);
+		add_assoc_long_ex(result, ZSTR_VAL(scheme->original_name_key), ZVAL_LEN(scheme->original_name_key), value);
 	}
 
 	return 0;
@@ -331,7 +331,7 @@ static int _json_serializer_bytes(
 	if (scheme->repeated) {
 		add_next_index_stringl(result, value, value_len);
 	} else {
-		add_assoc_stringl_ex(result, scheme->original_name, scheme->original_name_len, value, value_len);
+		add_assoc_stringl_ex(result, ZSTR_VAL(scheme->original_name_key), ZVAL_LEN(scheme->original_name_key), value, value_len);
 	}
 
 	return 0;
@@ -350,7 +350,7 @@ static int _json_serializer_string(
 	if (scheme->repeated) {
 		add_next_index_stringl(result, value, value_len);
 	} else {
-		add_assoc_stringl_ex(result, scheme->original_name, scheme->original_name_len, (char*)value, value_len);
+		add_assoc_stringl_ex(result, ZSTR_VAL(scheme->original_name_key), ZVAL_LEN(scheme->original_name_key), (char*)value, value_len);
 	}
 
 	return 0;
@@ -373,7 +373,7 @@ static int _json_serializer_message(
 	if (scheme->repeated) {
 		add_next_index_zval(result, tmp);
 	} else {
-		add_assoc_zval_ex(result, scheme->original_name, scheme->original_name_len, tmp);
+		add_assoc_zval_ex(result, ZSTR_VAL(scheme->original_name_key), ZVAL_LEN(scheme->original_name_key), tmp);
 	}
 
 	return 0;
@@ -407,11 +407,11 @@ static const char* php_protocolbuffers_get_property_name(php_protocolbuffers_sch
 {
 	const char *name;
 	if (container->use_single_property < 1) {
-		name = scheme->mangled_name;
-		*name_len = scheme->mangled_name_len;
+		name = ZSTR_VAL(scheme->mangled_name_key);
+		*name_len = ZVAL_LEN(scheme->mangled_name_key);
 	} else {
-		name = scheme->name;
-		*name_len = scheme->name_len;
+		name = ZSTR_VAL(scheme->name_key);
+		*name_len = ZSTR_LEN(scheme->name_key);
 	}
 
 	return name;
@@ -711,7 +711,7 @@ static void php_protocolbuffers_json_encode_element(php_protocolbuffers_scheme_c
 			}
 		} else {
 			if (scheme->required > 0 && Z_TYPE_P(tmp) == IS_NULL) {
-				php_protocolbuffers_raise_error_or_exception(php_protocol_buffers_uninitialized_message_exception_class_entry, E_WARNING, throws_exception, "the class does not have required property `%s`.", scheme->name);
+				php_protocolbuffers_raise_error_or_exception(php_protocol_buffers_uninitialized_message_exception_class_entry, E_WARNING, throws_exception, "the class does not have required property `%s`.", ZSTR_VAL(scheme->name_key));
 				return;
 			}
 			if (scheme->required == 0 && Z_TYPE_P(tmp) == IS_NULL) {
@@ -729,7 +729,7 @@ static void php_protocolbuffers_json_encode_element(php_protocolbuffers_scheme_c
 		}
 	} else {
 		if (scheme->required > 0) {
-			php_protocolbuffers_raise_error_or_exception(php_protocol_buffers_invalid_protocolbuffers_exception_class_entry, E_WARNING, throws_exception, "the class does not declared required property `%s`. probably you missed declaration", scheme->name);
+			php_protocolbuffers_raise_error_or_exception(php_protocol_buffers_invalid_protocolbuffers_exception_class_entry, E_WARNING, throws_exception, "the class does not declared required property `%s`. probably you missed declaration", ZSTR_VAL(scheme->name_key));
 			return;
 		}
 	}
@@ -742,18 +742,20 @@ int php_protocolbuffers_fetch_element2(php_protocolbuffers_scheme_container *con
 	int name_len = 0;
 	zend_string *name_key = NULL;
 	if (container->use_single_property < 1) {
-		name = scheme->mangled_name;
-		name_len = scheme->mangled_name_len;
+//		name = scheme->mangled_name;
+//		name_len = scheme->mangled_name_len;
+		name_key = scheme->mangled_name_key;
 	} else {
-		name = scheme->name;
-		name_len = scheme->name_len;
+//		name = scheme->name;
+//		name_len = scheme->name_len;
+		name_key = scheme->name_key;
 	}
-	name_key = zend_string_init(name,name_len,0);
+//	name_key = zend_string_init(name,name_len,0);
 	if ((tmp=zend_hash_find(hash, name_key)) != NULL) {
 		*output = tmp;
 	} else {
 		if (scheme->required > 0) {
-			php_protocolbuffers_raise_error_or_exception(php_protocol_buffers_invalid_protocolbuffers_exception_class_entry, E_WARNING, 0, "the class does not declared required property `%s`. probably you missed declaration", scheme->name);
+			php_protocolbuffers_raise_error_or_exception(php_protocol_buffers_invalid_protocolbuffers_exception_class_entry, E_WARNING, 0, "the class does not declared required property `%s`. probably you missed declaration", ZSTR_VAL(scheme->name_key));
 			return 1;
 		}
 	}

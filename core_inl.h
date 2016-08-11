@@ -319,22 +319,24 @@ static inline php_protocolbuffers_scheme *php_protocolbuffers_search_scheme_by_t
 
 static inline void php_protocolbuffers_decode_add_value_and_consider_repeated(php_protocolbuffers_scheme_container *container, php_protocolbuffers_scheme *s, HashTable *hresult, zval *dz TSRMLS_DC)
 {
-	char *name;
-	int name_len;
-	ulong hash;
-
+//	char *name;
+//	int name_len;
+//	ulong hash;
+	zend_string *name_key = NULL;
 	if (container->use_single_property < 1) {
-		name = s->mangled_name;
-		name_len = s->mangled_name_len;
-		hash = s->mangled_name_h;
+//		name = s->mangled_name;
+//		name_len = s->mangled_name_len;
+//		hash = s->mangled_name_h;
+		name_key = s->mangled_name_key;
 	} else {
-		name = s->name;
-		name_len = s->name_len;
-		hash = s->name_h;
+//		name = s->name;
+//		name_len = s->name_len;
+//		hash = s->name_h;
+		name_key = s->name_key;
 	}
 
 	if (s->repeated) {
-		if (!zend_hash_str_exists(hresult,name,name_len)) {
+		if (!zend_hash_exists(hresult,name_key)) {
 			zval *arr;
 
 			//MAKE_STD_ZVAL(arr);目前不知道怎么处理
@@ -346,7 +348,8 @@ static inline void php_protocolbuffers_decode_add_value_and_consider_repeated(ph
 				Z_ADDREF_P(dz);
 			}
 
-			zend_hash_str_update(hresult,name,name_len,arr);
+//			zend_hash_str_update(hresult,name,name_len,arr);
+			zend_hash_update(hresult,name_key,arr);
 			//zend_hash_quick_update(hresult, name, name_len, hash, (void **)&arr, sizeof(arr), NULL);
 			if (Z_REFCOUNTED_P(arr)) {
 				//Z_ADDREF_P(arr);
@@ -359,7 +362,7 @@ static inline void php_protocolbuffers_decode_add_value_and_consider_repeated(ph
 			zval *arr2;
 
 //			if (zend_hash_quick_find(hresult, name, name_len, hash, (void **)&arr2) == SUCCESS) {
-			if ((arr2=zend_hash_str_find(hresult, name, name_len)) != NULL) {
+			if ((arr2=zend_hash_find(hresult, name_key)) != NULL) {
 //				if (Z_TYPE_PP(arr2) == IS_NULL) {
 				if (Z_TYPE_P(arr2) == IS_NULL) {
 //					array_init(*arr2);
@@ -374,7 +377,7 @@ static inline void php_protocolbuffers_decode_add_value_and_consider_repeated(ph
 	} else {
 		//Z_ADDREF_P(dz);
 //		zend_hash_quick_update(hresult, name, name_len, hash, (void **)&dz, sizeof(dz), NULL);
-		zend_hash_str_update(hresult,name,name_len,dz);
+		zend_hash_update(hresult,name_key,dz);
 	}
 }
 

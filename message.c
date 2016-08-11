@@ -184,13 +184,13 @@ static void php_protocolbuffers_get_hash(php_protocolbuffers_scheme_container *c
 			return;
 		}
 
-		n = scheme->name;
-		n_len = scheme->name_len;
+		n = ZSTR_VAL(scheme->name_key);
+		n_len = ZVAL_LEN(scheme->name_key);
 	} else {
 		htt = Z_OBJPROP_P(object);
 
-		n = scheme->mangled_name;
-		n_len = scheme->mangled_name_len;
+		n = ZSTR_VAL(scheme->mangled_name_key);
+		n_len = ZVAL_LEN(scheme->mangled_name_key);
 	}
 
 	name = &n;
@@ -212,13 +212,15 @@ static void php_protocolbuffers_message_merge_from(php_protocolbuffers_scheme_co
 		scheme = &(container->scheme[i]);
 
 		if (container->use_single_property > 0) {
-			name = scheme->name;
-			name_len = scheme->name_len;
+//			name = scheme->name;
+//			name_len = scheme->name_len;
+			name_key = scheme->name_key;
 		} else {
-			name = scheme->mangled_name;
-			name_len = scheme->mangled_name_len;
+//			name = scheme->mangled_name;
+//			name_len = scheme->mangled_name_len;
+			name_key = scheme->mangled_name_key;
 		}
-		name_key = zend_string_init(name,name_len,0);
+//		name_key = zend_string_init(name,name_len,0);
 		if ((tmp=zend_hash_find(hts, name_key)) != NULL) {
 			zval *val;
 
@@ -391,11 +393,11 @@ static php_protocolbuffers_scheme *php_protocolbuffers_message_get_scheme_by_nam
 	for (i = 0; i < container->size; i++) {
 		scheme = &container->scheme[i];
 
-		if (strcmp(scheme->name, name) == 0) {
+		if (strcmp(ZSTR_VAL(scheme->name_key), name) == 0) {
 			break;
 		}
 		if (name2 != NULL) {
-			if (scheme->magic_type == 1 && strcasecmp(scheme->original_name, name2) == 0) {
+			if (scheme->magic_type == 1 && strcasecmp(ZSTR_VAL(scheme->original_name_key), name2) == 0) {
 				break;
 			}
 		}
@@ -421,8 +423,8 @@ static void php_protocolbuffers_message_get_hash_table_by_container(php_protocol
 	} else {
 		htt = Z_OBJPROP_P(instance);
 
-		n = scheme->mangled_name;
-		n_len = scheme->mangled_name_len;
+		n = ZSTR_VAL(scheme->mangled_name_key);
+		n_len = ZSTR_LEN(scheme->mangled_name_key);
 	}
 
 	*hash = htt;
@@ -598,7 +600,8 @@ static void php_protocolbuffers_message_set(INTERNAL_FUNCTION_PARAMETERS, zval *
 //			MAKE_STD_ZVAL(vl);
 			ZVAL_ZVAL(vl, e, 1, 0);
 			php_protocolbuffers_typeconvert(scheme, vl TSRMLS_CC);
-			zend_string *scheme_name_key = zend_string_init(scheme->name, scheme->name_len, 0);
+//			zend_string *scheme_name_key = zend_string_init(scheme->name, scheme->name_len, 0);
+			zend_string *scheme_name_key = scheme->name_key;
 			Z_ADDREF_P(vl);
 			zend_hash_update(htt, scheme_name_key, vl);
 			zval_ptr_dtor(vl);
@@ -652,7 +655,8 @@ static void php_protocolbuffers_message_clear(INTERNAL_FUNCTION_PARAMETERS, zval
 				ZVAL_NULL(vl);
 			}
 			php_protocolbuffers_typeconvert(scheme, vl TSRMLS_CC);
-			zend_string *scheme_name_key = zend_string_init(scheme->name, scheme->name_len,0);
+//			zend_string *scheme_name_key = zend_string_init(scheme->name, scheme->name_len,0);
+			zend_string *scheme_name_key = scheme->name_key;
 			zend_hash_update(htt, scheme_name_key,vl);
 		} else {
 			zval *garvage = e;
@@ -1050,15 +1054,16 @@ PHP_METHOD(protocolbuffers_message, current)
 	message = PHP_PROTOCOLBUFFERS_GET_OBJECT(php_protocolbuffers_message, instance);
 
 	if (container->use_single_property < 1) {
-		name     = container->scheme[message->offset].mangled_name;
-		name_len = container->scheme[message->offset].mangled_name_len;
-
+//		name     = container->scheme[message->offset].mangled_name;
+//		name_len = container->scheme[message->offset].mangled_name_len;
+		name_key = container->scheme[message->offset].mangled_name_key;
 		hash = Z_OBJPROP_P(instance);
 	} else {
 		zval *c;
 
-		name     = container->scheme[message->offset].name;
-		name_len = container->scheme[message->offset].name_len;
+//		name     = container->scheme[message->offset].name;
+//		name_len = container->scheme[message->offset].name_len;
+		name_key = container->scheme[message->offset].name_key;
 		zend_string *single_property_name_key = zend_string_init(container->single_property_name,container->single_property_name_len+1,0);
 		if ((c=zend_hash_find(Z_OBJPROP_P(instance), single_property_name_key)) != NULL) {
 			hash = Z_ARRVAL_P(c);
@@ -1084,7 +1089,7 @@ PHP_METHOD(protocolbuffers_message, key)
 	PHP_PROTOCOLBUFFERS_MESSAGE_CHECK_SCHEME
 	message = PHP_PROTOCOLBUFFERS_GET_OBJECT(php_protocolbuffers_message, instance);
 
-	RETURN_STRING(container->scheme[message->offset].name);
+	RETURN_STR(container->scheme[message->offset].name_key);
 }
 /* }}} */
 
@@ -1175,7 +1180,7 @@ PHP_METHOD(protocolbuffers_message, clearAll)
 	PHP_PROTOCOLBUFFERS_MESSAGE_CHECK_SCHEME
 
 	for (i = 0; i < container->size; i++) {
-		php_protocolbuffers_message_clear(INTERNAL_FUNCTION_PARAM_PASSTHRU, instance, container, container->scheme[i].name, container->scheme[i].name_len, NULL, 0);
+		php_protocolbuffers_message_clear(INTERNAL_FUNCTION_PARAM_PASSTHRU, instance, container, ZSTR_VAL(container->scheme[i].name_key), ZSTR_LEN(container->scheme[i].name_key), NULL, 0);
 	}
 
 	if (clear_unknown_fields > 0 && container->process_unknown_fields > 0) {
@@ -1194,19 +1199,20 @@ PHP_METHOD(protocolbuffers_message, __call)
 {
 	zval *params = NULL, *instance = getThis();
 	php_protocolbuffers_scheme_container *container;
-	char *name = {0};
-	int flag = 0, name_len = 0;
+	//char *name = {0};
+	int flag = 0; //name_len = 0;
+	zend_string *name_key;
 	smart_str buf = {0};
 	smart_str buf2 = {0};
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,
-		"sz", &name, &name_len, &params) == FAILURE) {
+		"Sz", &name_key, &params) == FAILURE) {
 		return;
 	}
 
-	flag = php_protocolbuffers_parse_magic_method(name, name_len, &buf, &buf2);
+	flag = php_protocolbuffers_parse_magic_method(ZSTR_VAL(name_key), ZSTR_LEN(name_key), &buf, &buf2);
 	if (flag == 0) {
-		zend_error(E_ERROR, "Call to undefined method %s::%s()", Z_OBJCE_P(instance)->name, name);
+		zend_error(E_ERROR, "Call to undefined method %s::%s()", Z_OBJCE_P(instance)->name, ZSTR_VAL(name_key));
 		return;
 	}
 
@@ -1413,7 +1419,7 @@ PHP_METHOD(protocolbuffers_message, getExtension)
 				php_protocolbuffers_scheme *scheme;
 
 				scheme = &container->scheme[x];
-				if (scheme->ce != NULL && strcmp(scheme->name, name) == 0) {
+				if (scheme->ce != NULL && strcmp(ZSTR_VAL(scheme->name_key), name) == 0) {
 					zval *tmp;
 //					MAKE_STD_ZVAL(tmp);
 					object_init_ex(tmp, scheme->ce);

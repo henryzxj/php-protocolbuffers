@@ -225,30 +225,38 @@ int php_protocolbuffers_init_scheme_with_zval(php_protocolbuffers_scheme *scheme
 
 	tsize = Z_STRLEN_P(tmp)+1;
 
-	scheme->original_name     = (char*)emalloc(sizeof(char*) * tsize);
-	scheme->original_name_len = tsize;
+//	scheme->original_name     = (char*)emalloc(sizeof(char*) * tsize);
+//	scheme->original_name_len = tsize;
 
-	memcpy(scheme->original_name, Z_STRVAL_P(tmp), tsize);
-	scheme->original_name[tsize] = '\0';
 
-	scheme->name     = (char*)emalloc(sizeof(char*) * tsize);
-	scheme->name_len = tsize;
+//	memcpy(scheme->original_name, Z_STRVAL_P(tmp), tsize);
+//	scheme->original_name[tsize] = '\0';
 
-	memcpy(scheme->name, Z_STRVAL_P(tmp), tsize);
-	scheme->name[tsize] = '\0';
-	php_strtolower(scheme->name, tsize);
-	scheme->name_h = zend_inline_hash_func(scheme->name, tsize);
+	scheme->original_name_key = zend_string_init(Z_STRVAL_P(tmp),Z_STRLEN_P(tmp),0);
+
+//	scheme->name     = (char*)emalloc(sizeof(char*) * tsize);
+//	scheme->name_len = tsize;
+
+//	memcpy(scheme->name, Z_STRVAL_P(tmp), tsize);
+//	scheme->name[tsize] = '\0';
+//	php_strtolower(scheme->name, tsize);
+//	scheme->name_h = zend_inline_hash_func(scheme->name, tsize);
+	scheme->name_key = php_string_tolower(zend_string_init(Z_STRVAL_P(tmp),Z_STRLEN_P(tmp),0));
 
 	/* use strcmp or fuzzy match */
-	scheme->magic_type = (strcmp(scheme->name, scheme->original_name) == 0) ? 0 : 1;
+	scheme->magic_type = (strcmp(ZSTR_VAL(scheme->name_key), ZSTR_VAL(scheme->original_name_key)) == 0) ? 0 : 1;
 
-	zend_string *mangle_key = zend_mangle_property_name((char*)"*", 1, (char*)scheme->original_name, scheme->original_name_len, 0);
-	scheme->mangled_name     = ZSTR_VAL(mangle_key);
-	scheme->mangled_name_len = ZSTR_LEN(mangle_key);
-	scheme->mangled_name_h   = zend_inline_hash_func(mangle, mangle_len);
+//	scheme->mangled_name_len = ZSTR_LEN(mangle_key);
+//	scheme->mangled_name     = (char*)emalloc(sizeof(char*) * scheme->mangled_name_len);
+//	scheme->mangled_name     = ZSTR_VAL(mangle_key);
+//
+//
+//	scheme->mangled_name_h   = zend_inline_hash_func(mangle, mangle_len);
+	scheme->mangled_name_key = zend_mangle_property_name((char*)"*", 1, ZSTR_VAL(scheme->original_name_key), ZSTR_LEN(scheme->original_name_key), 0);
+
 	scheme->skip = 0;
 
-	zend_string_release(mangle_key);
+//	zend_string_release(mangle_key);
 
 	if (scheme->type == TYPE_MESSAGE) {
 		zend_class_entry *c;
@@ -258,18 +266,24 @@ int php_protocolbuffers_init_scheme_with_zval(php_protocolbuffers_scheme *scheme
 		if (Z_TYPE_P(tmp) == IS_STRING) {
 			zend_string *tmp_name = zend_string_init(Z_STRVAL_P(tmp), Z_STRLEN_P(tmp),0);
 			if ((c=zend_lookup_class(tmp_name)) == NULL) {
-				efree(scheme->original_name);
-				efree(scheme->name);
-				efree(scheme->mangled_name);
+//				efree(scheme->original_name);
+//				efree(scheme->name);
+//				efree(scheme->mangled_name);
+				zend_string_release(scheme->original_name_key);
+				zend_string_release(scheme->name_key);
+				zend_string_release(scheme->mangled_name_key);
 				zend_throw_exception_ex(spl_ce_RuntimeException, 0 TSRMLS_CC, "the class %s does not find.", Z_STRVAL_P(tmp));
 				return 0;
 			}
 			zend_string_release(tmp_name);
 			scheme->ce = c;
 		} else {
-			efree(scheme->original_name);
-			efree(scheme->name);
-			efree(scheme->mangled_name);
+//			efree(scheme->original_name);
+//			efree(scheme->name);
+//			efree(scheme->mangled_name);
+			zend_string_release(scheme->original_name_key);
+			zend_string_release(scheme->name_key);
+			zend_string_release(scheme->mangled_name_key);
 			zend_throw_exception_ex(spl_ce_RuntimeException, 0 TSRMLS_CC, "message wiretype set. we need message parameter for referencing class entry.");
 			return 0;
 		}
@@ -369,7 +383,8 @@ static void php_protocolbuffers_build_field_descriptor(php_protocolbuffers_descr
 		object_init_ex(&tmp, php_protocol_buffers_field_descriptor_class_entry);
 
 //		MAKE_STD_ZVAL(value);
-		ZVAL_STRING(&value, ischeme->name);
+		ZVAL_STR(&value, ischeme->name_key);
+
 		php_protocolbuffers_set_protected_property(&tmp, ZEND_STRL("name"), &value TSRMLS_CC);
 
 //		MAKE_STD_ZVAL(value);
