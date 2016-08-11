@@ -33,23 +33,10 @@
 
 int php_protocolbuffers_message_options_init_properties(zval *object TSRMLS_DC)
 {
-	HashTable *properties = NULL;
 	zval tmp;
-
-	ALLOC_HASHTABLE(properties);
-	zend_hash_init(properties, 0, NULL, ZVAL_PTR_DTOR, 0);
-
-//	MAKE_STD_ZVAL(tmp);
-	array_init(&tmp);
-	zend_string *extensions_key = zend_string_init(ZEND_STRL("extensions"),0);
-	zend_hash_update(properties, extensions_key, &tmp);
-
-	zend_merge_properties(object, properties);
-
+	zend_class_entry *entry = Z_OBJCE_P(object);
+	zend_update_property(entry,object ,ZEND_STRL("extensions"),&tmp);
 	zval_ptr_dtor(&tmp);
-	FREE_HASHTABLE(properties);
-	zend_string_delref(extensions_key);
-	zend_string_release(extensions_key);
 	return 0;
 }
 
