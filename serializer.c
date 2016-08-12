@@ -519,31 +519,32 @@ static void php_protocolbuffers_encode_element(INTERNAL_FUNCTION_PARAMETERS, php
 		php_protocolbuffers_serializer *n_ser = NULL;
 
 		if (scheme->repeated) {
-			HashPosition pos;
-			zval *element;
-
+			ulong num_key;
+			zend_string *key;
+			zval *val;
 			if (is_packed == 1) {
 				php_protocolbuffers_serializer_init(&n_ser);
 			} else {
 				n_ser = ser;
 			}
 
+			if(Z_TYPE_P(tmp) == IS_INDIRECT) {//fix bug IS_INDIRECT type,by henryzxj
+				tmp= Z_INDIRECT_P(tmp);
+			}
+
 			if (Z_TYPE_P(tmp) != IS_ARRAY) {
 				array_init(tmp);
 			}
 
-			for(zend_hash_internal_pointer_reset_ex(Z_ARRVAL_P(tmp), &pos);
-							(element=zend_hash_get_current_data_ex(Z_ARRVAL_P(tmp), &pos)) == SUCCESS;
-							zend_hash_move_forward_ex(Z_ARRVAL_P(tmp), &pos)
-			) {
-				if (Z_TYPE_P(element) == IS_NULL) {
+			ZEND_HASH_FOREACH_KEY_VAL(Z_ARRVAL_P(tmp),num_key,key,val){
+				if (Z_TYPE_P(val) == IS_NULL) {
 					continue;
 				}
-				if(Z_TYPE_P(element) == IS_INDIRECT) {//fix bug IS_INDIRECT type,by henryzxj
-					element = Z_INDIRECT_P(element);
+				if(Z_TYPE_P(val) == IS_INDIRECT) {//fix bug IS_INDIRECT type,by henryzxj
+					val= Z_INDIRECT_P(val);
 				}
-				f(INTERNAL_FUNCTION_PARAM_PASSTHRU, element, scheme, n_ser, is_packed);
-			}
+				f(INTERNAL_FUNCTION_PARAM_PASSTHRU, val, scheme, n_ser, is_packed);
+			}ZEND_HASH_FOREACH_END();
 
 			if (is_packed == 1) {
 				php_protocolbuffers_serializer_write_varint32(ser, (scheme->tag << 3) | WIRETYPE_LENGTH_DELIMITED);
