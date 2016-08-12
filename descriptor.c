@@ -60,6 +60,7 @@ int php_protocolbuffers_descriptor_properties_init(zval *object TSRMLS_DC)
 	zval pp;
 	array_init(&pp);
 	zend_update_property(Z_OBJCE_P(object),object,ZEND_STRL("fields"),&pp);
+	zval_ptr_dtor(&pp);
 	return 0;
 }
 
@@ -85,7 +86,7 @@ static void php_protocolbuffers_descriptor_free_storage(zend_object *object TSRM
 		efree(intern->name);
 	}
 
-	if (intern->container != NULL && intern->free_container < 1) {
+	if (intern->container != NULL && intern->free_container <= 1) {
 		int i;
 
 		for (i = 0; i < (intern->container)->size; i++) {

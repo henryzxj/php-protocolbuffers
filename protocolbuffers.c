@@ -117,6 +117,7 @@ PHP_METHOD(protocolbuffers, decode)
 	}
 	zend_string * klass_name = zend_string_init(klass,klass_len,0);
 	php_protocolbuffers_decode(INTERNAL_FUNCTION_PARAM_PASSTHRU, data, data_len, klass_name);
+	zend_string_release(klass_name);
 }
 /* }}} */
 

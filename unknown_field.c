@@ -153,6 +153,7 @@ static void php_protocolbuffers_unknown_field_free_storage(php_protocolbuffers_u
 	   //php_protocolbuffers_unknown_field *unknown_field;
 
 	   object = (php_protocolbuffers_unknown_field *)((char *)object-XtOffsetOf(php_protocolbuffers_unknown_field, zo));
+	   FREE_HASHTABLE(object->ht);
 	   zend_object_std_dtor(&object->zo TSRMLS_CC);
 
 /*

@@ -332,10 +332,6 @@ static void php_protocolbuffers_encode_element_int32(PB_ENCODE_CALLBACK_PARAMETE
 	if (Z_TYPE_P(element) != IS_LONG) {
 		if (Z_TYPE_P(element) == IS_STRING) {
 			v = (int32_t)atol(Z_STRVAL_P(element));
-		} else if(Z_TYPE_P(element) == IS_INDIRECT) {
-			element = Z_INDIRECT_P(element);
-			convert_to_long(element);
-			v = (int32_t)Z_LVAL_P(element);
 		}else{
 			convert_to_long(element);
 			v = (int32_t)Z_LVAL_P(element);
@@ -514,27 +510,10 @@ static void php_protocolbuffers_encode_element(INTERNAL_FUNCTION_PARAMETERS, php
 	int name_len = 0;
 	zend_string *name_key = NULL;
 	if (container->use_single_property < 1) {
-//		name = scheme->mangled_name;
-//		name_len = scheme->mangled_name_len;
 		name_key = scheme->mangled_name_key;
 	} else {
-//		name = scheme->name;
-//		name_len = scheme->name_len;
 		name_key = scheme->name_key;
 	}
-
-	zend_string *k;
-	zval *v;
-	ZEND_HASH_FOREACH_STR_KEY_VAL(hash,k,v){
-			if(k){
-				zval m;
-				ZVAL_STR(&m,k);
-				php_var_dump(&m,1);
-				php_var_dump(v,1);
-			}
-	}ZEND_HASH_FOREACH_END();
-
-//	zend_string *name_key = zend_string_init(name,name_len,0);
 
 	if ((tmp=zend_hash_find(hash, name_key)) != NULL) {
 		php_protocolbuffers_serializer *n_ser = NULL;
@@ -560,7 +539,9 @@ static void php_protocolbuffers_encode_element(INTERNAL_FUNCTION_PARAMETERS, php
 				if (Z_TYPE_P(element) == IS_NULL) {
 					continue;
 				}
-
+				if(Z_TYPE_P(element) == IS_INDIRECT) {//fix bug IS_INDIRECT type,by henryzxj
+					element = Z_INDIRECT_P(element);
+				}
 				f(INTERNAL_FUNCTION_PARAM_PASSTHRU, element, scheme, n_ser, is_packed);
 			}
 
@@ -590,7 +571,9 @@ static void php_protocolbuffers_encode_element(INTERNAL_FUNCTION_PARAMETERS, php
 					//php_error_docref(NULL TSRMLS_CC, E_WARNING, "%s is not repeated field but array given", scheme->name);
 					return;
 				}
-
+				if(Z_TYPE_P(tmp) == IS_INDIRECT) {//fix bug IS_INDIRECT type,by henryzxj
+					tmp = Z_INDIRECT_P(tmp);
+				}
 				f(INTERNAL_FUNCTION_PARAM_PASSTHRU, tmp, scheme, ser, is_packed);
 			}
 		}
@@ -719,7 +702,7 @@ static void php_protocolbuffers_encode_unknown_fields(php_protocolbuffers_scheme
 			efree(uuname);
 		}
 	}
-
+	zend_string_release(uname_key);
 	if (container->use_single_property < 1) {
 		efree(uname);
 	}
@@ -733,15 +716,11 @@ int php_protocolbuffers_fetch_element(INTERNAL_FUNCTION_PARAMETERS, php_protocol
 	int name_len = 0;
 	zend_string *name_key = NULL;
 	if (container->use_single_property < 1) {
-//		name = scheme->mangled_name;
-//		name_len = scheme->mangled_name_len;
 		name_key = scheme->mangled_name_key;
 	} else {
-//		name = scheme->name;
-//		name_len = scheme->name_len;
 		name_key = scheme->name_key;
 	}
-//	name_key = zend_string_init(name,name_len,0);
+
 	if ((tmp=zend_hash_find(hash, name_key)) != NULL) {
 		*output = tmp;
 	} else {
@@ -781,22 +760,7 @@ int php_protocolbuffers_encode_message(INTERNAL_FUNCTION_PARAMETERS, zval *klass
 		}
 	}
 
-	php_var_dump(klass,1);
-	zend_string *k;
-	zval *v;
 
-	HashTable *props = zend_std_get_properties(klass);
-	ZEND_HASH_FOREACH_STR_KEY_VAL(props,k,v){
-		if(k){
-			zval m;
-			ZVAL_STR(&m,k);
-			php_var_dump(&m,1);
-			if (Z_TYPE_P(v) == IS_INDIRECT) {
-				v = Z_INDIRECT_P(v);
-				php_var_dump(v,1);
-			}
-		}
-	}ZEND_HASH_FOREACH_END();
 	if (container->size < 1 && container->process_unknown_fields < 1) {
 		php_protocolbuffers_serializer_destroy(ser);
 		return -1;

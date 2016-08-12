@@ -136,23 +136,11 @@ ZEND_END_ARG_INFO()
 */
 PHP_METHOD(protocolbuffers_unknown_field_set, __construct)
 {
-//	zval object_zval;
-//	Z_OBJ(object_zval);
-//    constructor = Z_OBJ_HT(object_zval)->get_constructor(Z_OBJ(object_zval));
-
 	zval *instance = getThis();
-	HashTable *properties = NULL;
 	zval tmp;
-
-	ALLOC_HASHTABLE(properties);
-	zend_hash_init(properties, 0, NULL, ZVAL_PTR_DTOR, 0);
-
 	array_init(&tmp);
-	zend_string *fields_key = zend_string_init(ZEND_STRL("fields"),0);
-	zend_hash_update(properties, fields_key, &tmp);
-	zend_string_release(fields_key);
-	zend_merge_properties(instance, properties);
-	FREE_HASHTABLE(properties);
+	zend_update_property(Z_OBJCE_P(instance),instance,ZEND_STRL("fields"),&tmp);
+	zval_ptr_dtor(&tmp);
 }
 /* }}} */
 
@@ -328,7 +316,7 @@ void php_protocolbuffers_unknown_field_set_class(TSRMLS_D)
 	zend_class_implements(php_protocol_buffers_unknown_field_set_class_entry TSRMLS_CC, 1, zend_ce_iterator);
 	php_protocol_buffers_unknown_field_set_class_entry->create_object = php_protocol_buffers_unknown_field_set_new;
 
-	zend_declare_property_null(php_protocol_buffers_unknown_field_set_class_entry, ZEND_STRS("fields")-1, ZEND_ACC_PROTECTED TSRMLS_CC);
+	//zend_declare_property_null(php_protocol_buffers_unknown_field_set_class_entry, ZEND_STRS("fields")-1, ZEND_ACC_PROTECTED TSRMLS_CC);
 
 	PHP_PROTOCOLBUFFERS_REGISTER_NS_CLASS_ALIAS(PHP_PROTOCOLBUFFERS_NAMESPACE, "UnknownFieldSet", php_protocol_buffers_unknown_field_set_class_entry);
 
