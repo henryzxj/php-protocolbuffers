@@ -294,7 +294,6 @@ int php_protocolbuffers_init_scheme_with_zval(php_protocolbuffers_scheme *scheme
 	/* TODO(chobie): check types */
 
 
-	php_var_dump(tmp,1);
 	if(Z_TYPE_P(tmp) !=IS_NULL){
 		ZVAL_ZVAL(&def, tmp, 1, 0);
 	}else{

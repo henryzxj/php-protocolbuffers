@@ -127,7 +127,7 @@ PHP_METHOD(protocolbuffers, encode)
 	zval *klass = NULL;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,
-		"o", &klass) == FAILURE) {
+		"z", &klass) == FAILURE) {
 		return;
 	}
 
