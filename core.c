@@ -94,8 +94,8 @@ int php_protocolbuffers_get_scheme_container(zend_string *klass, php_protocolbuf
 
 int php_protocolbuffers_get_scheme_container_ex(zend_string *klass, int throws_exception, php_protocolbuffers_scheme_container **result TSRMLS_DC)
 {
-	php_protocolbuffers_scheme_container *container, *cn;
-	if ((cn=(php_protocolbuffers_scheme_container *)zend_hash_find(PBG(messages), klass)) == NULL) {
+	php_protocolbuffers_scheme_container *cn;
+	if ((cn=(php_protocolbuffers_scheme_container *)zend_hash_find_ptr(PBG(messages), klass)) == NULL) {
 		zval ret;
 		zend_class_entry *ce = NULL;
 		if ((ce=(zend_class_entry *)zend_lookup_class(klass)) == NULL) {
@@ -117,7 +117,7 @@ int php_protocolbuffers_get_scheme_container_ex(zend_string *klass, int throws_e
 				if (entry == php_protocol_buffers_descriptor_class_entry) {
 					desc = PHP_PROTOCOLBUFFERS_GET_OBJECT(php_protocolbuffers_descriptor, &ret);
 					desc->free_container = 1;
-					zend_hash_add(PBG(messages), klass, (zval *)desc->container);
+					zend_hash_add_ptr(PBG(messages), klass, (void *)desc->container);
 				} else {
 					zend_throw_exception_ex(php_protocol_buffers_invalid_protocolbuffers_exception_class_entry, 0 TSRMLS_CC, "getDescriptor returns unexpected class");
 					if (&ret != NULL) {
@@ -145,10 +145,11 @@ int php_protocolbuffers_get_scheme_container_ex(zend_string *klass, int throws_e
 			return 1;
 		}
 	} else {
-		container = cn;
+		//php_protocolbuffers_scheme_container_init(cn);//add by henryzxj,is that correct
+		*result = cn;
 	}
 
-	*result = container;
+	//*result = container;
 
 	return 0;
 }
@@ -363,13 +364,13 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 	uint32_t payload = 0, tag = 0, wiretype = 0;
 	uint64_t value = 0;
 	zval *dz = NULL;
+	zval dzz;
 	HashTable *hresult;
 	pbf __payload = {0};
 	php_protocolbuffers_scheme *prior_scheme = NULL;
 
 	if (container->use_single_property > 0) {
 		zval *tmp = NULL;
-		//if (zend_hash_quick_find(Z_OBJPROP_P(*result), container->single_property_name, container->single_property_name_len+1, container->single_property_h, (void **)&tmp) == SUCCESS) {
 		if((tmp=zend_hash_str_find(Z_OBJPROP_P(result), container->single_property_name, container->single_property_name_len+1))!=NULL){
 			if (Z_TYPE_P(tmp) != IS_ARRAY) {
 				zend_throw_exception_ex(spl_ce_InvalidArgumentException, 0 TSRMLS_CC, "single property is not an array.");
@@ -439,18 +440,19 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 				}
 			} else if (s->type == TYPE_STRING) {
 //				MAKE_STD_ZVAL(dz);
-				ZVAL_STRINGL(dz, (char*)data, payload);
+				ZVAL_STRINGL(&dzz, (char*)data, payload);
 
-				php_protocolbuffers_decode_add_value_and_consider_repeated(container, s, hresult, dz TSRMLS_CC);
+				php_protocolbuffers_decode_add_value_and_consider_repeated(container, s, hresult, &dzz TSRMLS_CC);
 
 			} else if (s->type == TYPE_BYTES) {
 //				MAKE_STD_ZVAL(dz);
-				ZVAL_STRINGL(dz, (char*)data, payload);
+				ZVAL_STRINGL(&dzz, (char*)data, payload);
 
-				php_protocolbuffers_decode_add_value_and_consider_repeated(container, s, hresult, dz TSRMLS_CC);
+				php_protocolbuffers_decode_add_value_and_consider_repeated(container, s, hresult, &dzz TSRMLS_CC);
 			} else if (s->type == TYPE_MESSAGE) {
 				const char *n_buffer_end = data + payload;
 				zval *z_obj = NULL;
+				zval zz_obj;
 				php_protocolbuffers_scheme_container *c_container = NULL;
 				char *name = {0};
 				int name_length = 0;
@@ -486,22 +488,22 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 					}
 				} else {
 //					MAKE_STD_ZVAL(z_obj);
-					object_init_ex(z_obj, s->ce);
-					php_protocolbuffers_properties_init(z_obj, s->ce TSRMLS_CC);
+					object_init_ex(&zz_obj, s->ce);
+					php_protocolbuffers_properties_init(&zz_obj, s->ce TSRMLS_CC);
 
 					if (instanceof_function_ex(s->ce, php_protocol_buffers_message_class_entry, 0 TSRMLS_CC)) {
 						php_protocolbuffers_message *m;
-						m = PHP_PROTOCOLBUFFERS_GET_OBJECT(php_protocolbuffers_message, z_obj);
+						m = PHP_PROTOCOLBUFFERS_GET_OBJECT(php_protocolbuffers_message, &zz_obj);
 
 						// point to parent.
 						ZVAL_ZVAL(m->container, result, 0, 0);
 					}
 				}
 
-				php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAM_PASSTHRU, data, n_buffer_end, c_container, PBG(native_scalars), z_obj);
+				php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAM_PASSTHRU, data, n_buffer_end, c_container, PBG(native_scalars), &zz_obj);
 
 				if (c_container->use_wakeup_and_sleep > 0) {
-					php_protocolbuffers_execute_wakeup(z_obj, c_container TSRMLS_CC);
+					php_protocolbuffers_execute_wakeup(&zz_obj, c_container TSRMLS_CC);
 				}
 
 				if (s->repeated) {
@@ -510,8 +512,8 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 
 						array_init(arr);
 
-						Z_ADDREF_P(z_obj);
-						zend_hash_next_index_insert(Z_ARRVAL_P(arr), z_obj);
+						Z_ADDREF_P(&zz_obj);
+						zend_hash_next_index_insert(Z_ARRVAL_P(arr), &zz_obj);
 						Z_ADDREF_P(arr);
 						zend_hash_update(hresult, name_key, arr);
 						zval_ptr_dtor(arr);
@@ -519,16 +521,16 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 						zval *arr2 = NULL;
 
 						if ((arr2=zend_hash_str_find(hresult, name, name_length)) != NULL) {
-							Z_ADDREF_P(z_obj);
-							zend_hash_next_index_insert(Z_ARRVAL_P(arr2), z_obj);
+							Z_ADDREF_P(&zz_obj);
+							zend_hash_next_index_insert(Z_ARRVAL_P(arr2), &zz_obj);
 						}
 					}
 				} else {
-					zend_hash_str_update(hresult,name,name_length,z_obj);
-					Z_ADDREF_P(z_obj);
+					zend_hash_str_update(hresult,name,name_length,&zz_obj);
+					Z_ADDREF_P(&zz_obj);
 				}
 
-				zval_ptr_dtor(z_obj);
+				zval_ptr_dtor(&zz_obj);
 			} else if (s->packed) {
 				const char *packed_data_end, *last_data_offset;
 
@@ -704,9 +706,9 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 //							MAKE_STD_ZVAL(dz);
 
 							__payload.type = TYPE_SINT64;__payload.value.int64 = (int64_t)zigzag_decode64(v2);
-							php_protocolbuffers_format_string(dz, &__payload, native_scalars TSRMLS_CC);
+							php_protocolbuffers_format_string(&dzz, &__payload, native_scalars TSRMLS_CC);
 
-							php_protocolbuffers_decode_add_value_and_consider_repeated(container, s, hresult, dz TSRMLS_CC);
+							php_protocolbuffers_decode_add_value_and_consider_repeated(container, s, hresult, &dzz TSRMLS_CC);
 						}
 						break;
 					}
@@ -797,7 +799,7 @@ int php_protocolbuffers_encode(INTERNAL_FUNCTION_PARAMETERS, zend_class_entry *c
 	return 0;
 }
 
-int php_protocolbuffers_decode(INTERNAL_FUNCTION_PARAMETERS, const char *data, int data_len, zend_string *klass)
+int php_protocolbuffers_decode(INTERNAL_FUNCTION_PARAMETERS, char *data,long data_len, zend_string *klass)
 {
 	zval obj;
 	php_protocolbuffers_scheme_container *container;
@@ -826,10 +828,10 @@ int php_protocolbuffers_decode(INTERNAL_FUNCTION_PARAMETERS, const char *data, i
 		/* Memo: fast lookup */
 //		if (zend_hash_find(PBG(classes), (char*)klass, klass_len, (void **)&ce) == FAILURE) {
 		//zend_string *klass_name = zend_string_init((char*)klass, klass_len,0);
-		if ((ce=(zend_class_entry *)zend_hash_find(PBG(classes), klass)) == NULL) {
+		if ((ce=(zend_class_entry *)zend_hash_find_ptr(PBG(classes), klass)) == NULL) {
 			ce = zend_lookup_class(klass);
 			if (ce != NULL) {
-				zend_hash_update(PBG(classes), klass, (zval *)ce);
+				zend_hash_update_ptr(PBG(classes), klass, (void *)ce);
 			} else {
 				php_error_docref(NULL TSRMLS_CC, E_ERROR, "class lookup failed. %s does exist", klass);
 				return 1;
@@ -985,10 +987,14 @@ int php_protocolbuffers_properties_init(zval *object, zend_class_entry *ce TSRML
 			if (scheme->repeated > 0) {
 				array_init(&pp);
 			} else {
-				if (Z_TYPE_P(scheme->default_value) != IS_NULL) {
+				if(scheme->default_value!=NULL&&Z_TYPE_P(scheme->default_value) != IS_NULL){
 					ZVAL_ZVAL(&pp, scheme->default_value, 1, 0);
-				} else {
-					ZVAL_NULL(&pp);
+				}else{
+//					if (Z_TYPE_P(scheme->default_value) != IS_NULL) {
+//						ZVAL_ZVAL(&pp, scheme->default_value, 1, 0);
+//					} else {
+						ZVAL_NULL(&pp);
+//					}
 				}
 			}
 			//zend_hash_update(properties, scheme->original_name_key, &pp);

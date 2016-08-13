@@ -98,26 +98,28 @@ ZEND_END_ARG_INFO()
 */
 PHP_METHOD(protocolbuffers, decode)
 {
-	char *klass;
+//	char *klass;
 	const char *data;
-	long klass_len = 0, data_len = 0;
-
+//	long klass_len = 0, data_len = 0;
+	long data_len = 0;
+	zend_string *klass_name;
+	//zend_string *data;
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,
-		"ss", &klass, &klass_len, &data, &data_len) == FAILURE) {
+		"Ss", &klass_name, &data,&data_len) == FAILURE) {
 		return;
 	}
 
-	if (klass[0] == '\\') {
+	/*if (klass[0] == '\\') {
 		int x;
 		for (x = 0; x < klass_len-1; x++) {
 			klass[x] = klass[x+1];
 		}
 		klass[klass_len-1] = '\0';
 		klass_len--;
-	}
-	zend_string * klass_name = zend_string_init(klass,klass_len,0);
-	php_protocolbuffers_decode(INTERNAL_FUNCTION_PARAM_PASSTHRU, data, data_len, klass_name);
-	zend_string_release(klass_name);
+	}*/
+	//zend_string * klass_name = zend_string_init(klass,klass_len,0);
+	php_protocolbuffers_decode(INTERNAL_FUNCTION_PARAM_PASSTHRU, data,data_len, klass_name);
+	//zend_string_release(klass_name);
 }
 /* }}} */
 
@@ -360,22 +362,17 @@ PHP_RSHUTDOWN_FUNCTION(protocolbuffers)
 			int i = 0;
 			HashPosition pos;
 			php_protocolbuffers_scheme_container *element;
-
-			for(zend_hash_internal_pointer_reset_ex(PBG(messages), &pos);
-							(element = (php_protocolbuffers_scheme_container *)zend_hash_get_current_data_ex(PBG(messages), &pos)) != NULL;
-							zend_hash_move_forward_ex(PBG(messages), &pos)
-			) {
+			zend_string *k;
+//			php_protocolbuffers_scheme_container *val;
+			ZEND_HASH_FOREACH_PTR(PBG(messages), element){
 				for (i = 0; i < (element)->size; i++) {
 					if ((element)->scheme[i].original_name_key != NULL) {
-//						efree((element)->scheme[i].original_name);
-						zend_string_release((element)->scheme[i].original_name_key);
+							zend_string_release((element)->scheme[i].original_name_key);
 					}
 					if ((element)->scheme[i].name_key != NULL) {
-//						efree((element)->scheme[i].name);
 						zend_string_release((element)->scheme[i].name_key);
 					}
 					if ((element)->scheme[i].mangled_name_key != NULL) {
-//						efree((element)->scheme[i].mangled_name);
 						zend_string_release((element)->scheme[i].mangled_name_key);
 					}
 					if ((element)->scheme[i].default_value != NULL) {
@@ -387,8 +384,9 @@ PHP_RSHUTDOWN_FUNCTION(protocolbuffers)
 					efree((element)->single_property_name);
 				}
 
-				if ((element)->orig_single_property_name != NULL &&
-					memcmp((element)->orig_single_property_name, php_protocolbuffers_get_default_single_property_name(), php_protocolbuffers_get_default_single_property_name_len()) != 0) {
+				if ((element)->orig_single_property_name != NULL
+						&&memcmp((element)->orig_single_property_name, php_protocolbuffers_get_default_single_property_name(), php_protocolbuffers_get_default_single_property_name_len()) != 0)
+				{
 					efree((element)->orig_single_property_name);
 				}
 
@@ -399,10 +397,8 @@ PHP_RSHUTDOWN_FUNCTION(protocolbuffers)
 				if ((element)->extensions != NULL) {
 					efree((element)->extensions);
 				}
-
 				efree(element);
-			}
-
+			}ZEND_HASH_FOREACH_END();
 			zend_hash_destroy(PBG(messages));
 			FREE_HASHTABLE(PBG(messages));
 			PBG(messages) = NULL;

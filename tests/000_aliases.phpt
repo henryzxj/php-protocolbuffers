@@ -5,7 +5,7 @@ Check for protocol buffers sfixed64 implementations
 --FILE--
 <?php
 
-$target  = new ProtocolBuffers\FieldDescriptor(['s'=>a]);
+$target  = new ProtocolBuffers\FieldDescriptor(['s'=>1]);
 if ($target  instanceof ProtocolBuffersFieldDescriptor) {
 	echo "OK" . PHP_EOL;
 } else {

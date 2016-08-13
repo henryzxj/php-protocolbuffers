@@ -125,7 +125,9 @@ static int php_protocolbuffers_field_descriptor_process_params(zval *zv TSRMLS_D
 			//efree(name);
 		} else {
 		}
-		zend_string_release(name_key);
+		if(name_key!=NULL){
+			zend_string_release(name_key);
+		}
 	}
 #undef PHP_PROTOCOLBUFFERS_PROCESS_BOOL
 	return 0;

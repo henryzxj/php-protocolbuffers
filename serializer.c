@@ -380,7 +380,9 @@ static void php_protocolbuffers_encode_element_msg(PB_ENCODE_CALLBACK_PARAMETERS
 
 	ce = Z_OBJCE_P(element);
 
+	/*tests/002_repeated_int32.phpt bug ,n_container->use_single_property=3080*/
 	php_protocolbuffers_get_scheme_container(ce->name, &n_container TSRMLS_CC);
+
 	if (err) {
 		php_error_docref(NULL TSRMLS_CC, E_ERROR, "php_protocolbuffers_get_scheme_container failed. %s does not have getDescriptor method", ZSTR_VAL(ce->name));
 		return;

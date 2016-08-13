@@ -387,13 +387,13 @@ static inline int php_protocolbuffers_process_varint(
 		php_protocolbuffers_scheme *scheme, uint64_t value, HashTable *hresult,
 		int use_string) {
 	pbf __payload = { 0 };
-	zval *dz = NULL;
+	zval dz;
 
 	if (scheme == NULL) {
 		if (container->process_unknown_fields > 0) {
 //			MAKE_STD_ZVAL(dz);
 			php_protocolbuffers_process_unknown_field(
-					INTERNAL_FUNCTION_PARAM_PASSTHRU, container, hresult, dz,
+					INTERNAL_FUNCTION_PARAM_PASSTHRU, container, hresult, &dz,
 					tag, wiretype, value);
 		} else {
 			/* NOTE: skip unknown field. nothing to do. */
@@ -401,46 +401,44 @@ static inline int php_protocolbuffers_process_varint(
 	} else {
 		//MAKE_STD_ZVAL(dz);
 		switch (scheme->type) {
-		case TYPE_BOOL:
-			ZVAL_BOOL(dz, value);
-			break;
-		case TYPE_INT32:
-		case TYPE_ENUM:
-			__payload.type = TYPE_INT32;
-			__payload.value.int32 = (int32_t) value;
-			break;
-		case TYPE_UINT32:
-			__payload.type = TYPE_UINT32;
-			__payload.value.uint32 = (uint32_t) value;
-			break;
-		case TYPE_SINT32:
-			__payload.type = TYPE_INT32;
-			__payload.value.int32 = (int32_t) zigzag_decode32(value);
-			break;
-		case TYPE_INT64:
-			__payload.type = TYPE_INT64;
-			__payload.value.int64 = (int64_t) value;
-			break;
-		case TYPE_SINT64:
-			__payload.type = TYPE_INT64;
-			__payload.value.int64 = (int64_t) zigzag_decode64(value);
-			break;
-		case TYPE_UINT64:
-			__payload.type = TYPE_UINT64;
-			__payload.value.uint64 = (uint64_t) value;
-			break;
-		default:
-			zval_ptr_dtor(dz);
-			return 0;
+			case TYPE_BOOL:
+				ZVAL_BOOL(&dz, value);
+				break;
+			case TYPE_INT32:
+			case TYPE_ENUM:
+				__payload.type = TYPE_INT32;
+				__payload.value.int32 = (int32_t) value;
+				break;
+			case TYPE_UINT32:
+				__payload.type = TYPE_UINT32;
+				__payload.value.uint32 = (uint32_t) value;
+				break;
+			case TYPE_SINT32:
+				__payload.type = TYPE_INT32;
+				__payload.value.int32 = (int32_t) zigzag_decode32(value);
+				break;
+			case TYPE_INT64:
+				__payload.type = TYPE_INT64;
+				__payload.value.int64 = (int64_t) value;
+				break;
+			case TYPE_SINT64:
+				__payload.type = TYPE_INT64;
+				__payload.value.int64 = (int64_t) zigzag_decode64(value);
+				break;
+			case TYPE_UINT64:
+				__payload.type = TYPE_UINT64;
+				__payload.value.uint64 = (uint64_t) value;
+				break;
+			default:
+				zval_ptr_dtor(&dz);
+				return 0;
 		}
 		if (scheme->type != TYPE_BOOL) {
-php_protocolbuffers_format_string		(dz, &__payload, use_string TSRMLS_CC);
+			php_protocolbuffers_format_string(&dz, &__payload, use_string TSRMLS_CC);
+		}
+		php_protocolbuffers_decode_add_value_and_consider_repeated(container, scheme, hresult, &dz TSRMLS_CC);
 	}
-
-	php_protocolbuffers_decode_add_value_and_consider_repeated(container, scheme, hresult, dz TSRMLS_CC);
-}
-
-return 1;
+	return 1;
 }
 
 static inline int php_protocolbuffers_process_fixed64(
@@ -509,8 +507,7 @@ static inline int php_protocolbuffers_process_fixed32(
 		php_protocolbuffers_scheme *scheme, const char *data,
 		HashTable *hresult, int use_string) {
 	pbf __payload = { 0 };
-	zval *dz = NULL;
-
+	zval dz;
 	if (scheme == NULL) {
 		if (container->process_unknown_fields > 0) {
 			php_protocolbuffers_process_unknown_field_bytes(
@@ -548,11 +545,11 @@ static inline int php_protocolbuffers_process_fixed32(
 		}
 			break;
 		default:
-			zval_ptr_dtor(dz);
+			zval_ptr_dtor(&dz);
 			return 0;
 		}
-php_protocolbuffers_format_string	(dz, &__payload, use_string TSRMLS_CC);
-	php_protocolbuffers_decode_add_value_and_consider_repeated(container, scheme, hresult, dz TSRMLS_CC);
+php_protocolbuffers_format_string(&dz, &__payload, use_string TSRMLS_CC);
+	php_protocolbuffers_decode_add_value_and_consider_repeated(container, scheme, hresult, &dz TSRMLS_CC);
 }
 
 return 1;
