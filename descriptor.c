@@ -294,7 +294,7 @@ void php_protocolbuffers_descriptor_class(TSRMLS_D)
 	php_protocol_buffers_descriptor_class_entry = zend_register_internal_class(&ce TSRMLS_CC);
 	php_protocol_buffers_descriptor_class_entry->create_object = php_protocolbuffers_descriptor_new;
 
-	zend_declare_property_null(php_protocol_buffers_descriptor_class_entry, ZEND_STRS("fields")-1, ZEND_ACC_PROTECTED TSRMLS_CC);
+	//zend_declare_property_null(php_protocol_buffers_descriptor_class_entry, ZEND_STRL("fields"), ZEND_ACC_PROTECTED TSRMLS_CC);
 
 	PHP_PROTOCOLBUFFERS_REGISTER_NS_CLASS_ALIAS(PHP_PROTOCOLBUFFERS_NAMESPACE, "Descriptor", php_protocol_buffers_descriptor_class_entry);
 

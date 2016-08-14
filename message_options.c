@@ -50,8 +50,6 @@ ZEND_END_ARG_INFO()
 PHP_METHOD(protocolbuffers_message_options, getExtension)
 {
 	zval *result = NULL, *options = NULL;
-	char *name = {0};
-	long name_len = 0;
 	zend_string *name_key = NULL;
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,
 		"S", &name_key) == FAILURE) {
@@ -61,7 +59,7 @@ PHP_METHOD(protocolbuffers_message_options, getExtension)
 	options = pb_zend_read_property(php_protocol_buffers_descriptor_builder_class_entry, getThis(), ZEND_STRL("extensions"), 1 TSRMLS_CC);
 
 	if ((result=zend_hash_find(Z_ARRVAL_P(options), name_key)) == NULL) {
-		if (strcmp(name, "php") == 0) {
+		if (strcmp(ZSTR_VAL(name_key), "php") == 0) {
 			zval *obj;
 
 //			MAKE_STD_ZVAL(obj);
@@ -70,7 +68,7 @@ PHP_METHOD(protocolbuffers_message_options, getExtension)
 			zend_hash_update(Z_ARRVAL_P(options), name_key, obj);
 			result = obj;
 		} else {
-			zend_throw_exception_ex(spl_ce_InvalidArgumentException, 0 TSRMLS_CC, "%s extension does not support. now only supports php extension", name);
+			zend_throw_exception_ex(spl_ce_InvalidArgumentException, 0 TSRMLS_CC, "%s extension does not support. now only supports php extension", ZSTR_VAL(name_key));
 			return;
 		}
 	}

@@ -552,7 +552,7 @@ PHP_METHOD(protocolbuffers_descriptor_builder, getOptions)
 PHP_METHOD(protocolbuffers_descriptor_builder, addExtensionRange)
 {
 	zval *instance = getThis();
-	zval *z_begin = NULL, *z_end = NULL, *fields = NULL, *extension_ranges = NULL;
+	zval z_begin, z_end, *fields = NULL, *extension_ranges = NULL;
 	zend_long begin = 0, end = 0;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,
@@ -606,19 +606,19 @@ PHP_METHOD(protocolbuffers_descriptor_builder, addExtensionRange)
 	}
 	zend_string *extension_ranges_key=zend_string_init(ZEND_STRL("extension_ranges"),0);
 	if ((extension_ranges=zend_hash_find(Z_OBJPROP_P(instance), extension_ranges_key)) != NULL) {
-		zval *array = NULL;
-		array_init(array);
+		zval array;
+		array_init(&array);
 
-		ZVAL_LONG(z_begin, begin);
-		ZVAL_LONG(z_end, end);
+		ZVAL_LONG(&z_begin, begin);
+		ZVAL_LONG(&z_end, end);
 
 		zend_string *begin_name = zend_string_init(ZEND_STRL("begin"),0);
-		zend_hash_update(Z_ARRVAL_P(array), begin_name, z_begin);
+		zend_hash_update(Z_ARRVAL_P(&array), begin_name, &z_begin);
 		zend_string_release(begin_name);
 		zend_string *end_name = zend_string_init(ZEND_STRL("end"),0);
-		zend_hash_update(Z_ARRVAL_P(array), end_name,   z_end);
+		zend_hash_update(Z_ARRVAL_P(&array), end_name,   &z_end);
 		zend_string_release(end_name);
-		zend_hash_next_index_insert(Z_ARRVAL_P(extension_ranges), array);
+		zend_hash_next_index_insert(Z_ARRVAL_P(extension_ranges), &array);
 	}
 	zend_string_release(extension_ranges_key);
 }

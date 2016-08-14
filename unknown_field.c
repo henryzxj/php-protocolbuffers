@@ -153,7 +153,27 @@ static void php_protocolbuffers_unknown_field_free_storage(php_protocolbuffers_u
 	   //php_protocolbuffers_unknown_field *unknown_field;
 
 	   object = (php_protocolbuffers_unknown_field *)((char *)object-XtOffsetOf(php_protocolbuffers_unknown_field, zo));
+	   unknown_value *element;
+	   ZEND_HASH_FOREACH_PTR(object->ht,element){
+		   switch (object->type) {
+		   			case WIRETYPE_VARINT:
+		   				efree(element);
+		   			break;
+		   			case WIRETYPE_FIXED64:
+		   			case WIRETYPE_FIXED32:
+		   			case WIRETYPE_LENGTH_DELIMITED:
+		   				if ((element)->buffer.len > 0) {
+		   					efree((element)->buffer.val);
+		   					(element)->buffer.val = NULL;
+		   					(element)->buffer.len = 0;
+		   				}
+		   				efree(element);
+		   			break;
+		   	}
+	   }ZEND_HASH_FOREACH_END();
+
 	   FREE_HASHTABLE(object->ht);
+	   object->ht = NULL;
 	   zend_object_std_dtor(&object->zo TSRMLS_CC);
 
 /*

@@ -399,6 +399,7 @@ PHP_RSHUTDOWN_FUNCTION(protocolbuffers)
 				}
 				efree(element);
 			}ZEND_HASH_FOREACH_END();
+
 			zend_hash_destroy(PBG(messages));
 			FREE_HASHTABLE(PBG(messages));
 			PBG(messages) = NULL;

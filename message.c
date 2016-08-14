@@ -466,12 +466,12 @@ static void php_protocolbuffers_message_get(INTERNAL_FUNCTION_PARAMETERS, zval *
 			}
 		} else {
 			if (scheme->ce != NULL && Z_TYPE_P(e) == IS_NULL) {
-				zval *tmp;
+				zval tmp;
 //				MAKE_STD_ZVAL(tmp);
-				object_init_ex(tmp, scheme->ce);
-				php_protocolbuffers_properties_init(tmp, scheme->ce TSRMLS_CC);
+				object_init_ex(&tmp, scheme->ce);
+				php_protocolbuffers_properties_init(&tmp, scheme->ce TSRMLS_CC);
 
-				RETURN_ZVAL(tmp, 0, 1);
+				RETURN_ZVAL(&tmp, 0, 1);
 			} else {
 				RETURN_ZVAL(e, 1, 0);
 			}

@@ -358,18 +358,14 @@ static inline void php_protocolbuffers_decode_add_value_and_consider_repeated(ph
 //			zval_ptr_dtor(&arr);
 			zval_ptr_dtor(arr);
 		} else {
-//			zval **arr2;
 			zval *arr2;
-
-//			if (zend_hash_quick_find(hresult, name, name_len, hash, (void **)&arr2) == SUCCESS) {
 			if ((arr2=zend_hash_find(hresult, name_key)) != NULL) {
-//				if (Z_TYPE_PP(arr2) == IS_NULL) {
 				if (Z_TYPE_P(arr2) == IS_NULL) {
-//					array_init(*arr2);
 					array_init(arr2);
 				}
-
-//				zend_hash_next_index_insert(Z_ARRVAL_PP(arr2), (void *)&dz, sizeof(dz), NULL);
+				if(Z_TYPE_P(arr2) == IS_INDIRECT) {//fix bug IS_INDIRECT type,by henryzxj
+					arr2= Z_INDIRECT_P(arr2);
+				}
 				zend_hash_next_index_insert(Z_ARRVAL_P(arr2), dz);
 				//Z_ADDREF_P(dz);
 			}

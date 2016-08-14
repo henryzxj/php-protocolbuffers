@@ -177,7 +177,7 @@ void php_protocolbuffers_process_unknown_field(INTERNAL_FUNCTION_PARAMETERS, php
 			val = (unknown_value*)emalloc(sizeof(val));
 			val->varint = value;
 
-			zend_hash_next_index_insert(p->ht, (zval *)val);
+			zend_hash_next_index_insert(p->ht, (void *)val);
 		} else {
 			object_init_ex(dz, php_protocol_buffers_unknown_field_class_entry);
 			php_protocolbuffers_unknown_field_properties_init(dz TSRMLS_CC);
@@ -188,7 +188,7 @@ void php_protocolbuffers_process_unknown_field(INTERNAL_FUNCTION_PARAMETERS, php
 
 			val = (unknown_value*)emalloc(sizeof(unknown_value));
 			val->varint = value;
-			zend_hash_next_index_insert(p->ht, (zval *)val);
+			zend_hash_next_index_insert(p->ht, (void *)val);
 
 			php_protocolbuffers_unknown_field_set_add_field(INTERNAL_FUNCTION_PARAM_PASSTHRU, un, tag, dz);
 		}
@@ -204,7 +204,7 @@ void php_protocolbuffers_process_unknown_field_bytes(INTERNAL_FUNCTION_PARAMETER
 {
 	char *unknown_name = {0};
 	int unknown_name_len = 0;
-	zval *dz = NULL, *unknown_fieldset = NULL;
+	zval dz, *unknown_fieldset = NULL;
 	unknown_value *val = NULL;
 	php_protocolbuffers_unknown_field *p = NULL;
 	uint8_t *buffer = NULL;
@@ -232,24 +232,24 @@ void php_protocolbuffers_process_unknown_field_bytes(INTERNAL_FUNCTION_PARAMETER
 			val->buffer.val = buffer;
 			val->buffer.len = length;
 
-			zend_hash_next_index_insert(p->ht, (zval *)val);
+			zend_hash_next_index_insert(p->ht, (void *)val);
 		} else {
 //			MAKE_STD_ZVAL(dz);
-			object_init_ex(dz, php_protocol_buffers_unknown_field_class_entry);
-			php_protocolbuffers_unknown_field_properties_init(dz TSRMLS_CC);
-			php_protocolbuffers_unknown_field_set_number(dz, tag TSRMLS_CC);
-			php_protocolbuffers_unknown_field_set_type(dz, wiretype TSRMLS_CC);
+			object_init_ex(&dz, php_protocol_buffers_unknown_field_class_entry);
+			php_protocolbuffers_unknown_field_properties_init(&dz TSRMLS_CC);
+			php_protocolbuffers_unknown_field_set_number(&dz, tag TSRMLS_CC);
+			php_protocolbuffers_unknown_field_set_type(&dz, wiretype TSRMLS_CC);
 
-			p = PHP_PROTOCOLBUFFERS_GET_OBJECT(php_protocolbuffers_unknown_field, dz);
+			p = PHP_PROTOCOLBUFFERS_GET_OBJECT(php_protocolbuffers_unknown_field, &dz);
 
 			val = (unknown_value*)emalloc(sizeof(unknown_value));
 			buffer = (uint8_t*)emalloc(length);
 			memcpy(buffer, bytes, length);
 			val->buffer.val = buffer;
 			val->buffer.len = length;
-			zend_hash_next_index_insert(p->ht, (zval *)val);
+			zend_hash_next_index_insert_ptr(p->ht, (void *)val);
 
-			php_protocolbuffers_unknown_field_set_add_field(INTERNAL_FUNCTION_PARAM_PASSTHRU, unknown_fieldset, tag, dz);
+			php_protocolbuffers_unknown_field_set_add_field(INTERNAL_FUNCTION_PARAM_PASSTHRU, unknown_fieldset, tag, &dz);
 		}
 	}
 
@@ -548,8 +548,8 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 //							MAKE_STD_ZVAL(dz);
 
 							__payload.type = TYPE_DOUBLE;__payload.value.d = d;
-							php_protocolbuffers_format_string(dz, &__payload, native_scalars TSRMLS_CC);
-							php_protocolbuffers_decode_add_value_and_consider_repeated(container, s, hresult, dz TSRMLS_CC);
+							php_protocolbuffers_format_string(&dzz, &__payload, native_scalars TSRMLS_CC);
+							php_protocolbuffers_decode_add_value_and_consider_repeated(container, s, hresult, &dzz TSRMLS_CC);
 
 							data += 8;
 						}
@@ -565,9 +565,9 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 //							MAKE_STD_ZVAL(dz);
 
 							__payload.type = TYPE_DOUBLE;__payload.value.d = a;
-							php_protocolbuffers_format_string(dz, &__payload, native_scalars TSRMLS_CC);
+							php_protocolbuffers_format_string(&dzz, &__payload, native_scalars TSRMLS_CC);
 
-							php_protocolbuffers_decode_add_value_and_consider_repeated(container, s, hresult, dz TSRMLS_CC);
+							php_protocolbuffers_decode_add_value_and_consider_repeated(container, s, hresult, &dzz TSRMLS_CC);
 
 							data += 4;
 						}
@@ -580,9 +580,9 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 //							MAKE_STD_ZVAL(dz);
 
 							__payload.type = TYPE_INT64;__payload.value.int64 = v2;
-							php_protocolbuffers_format_string(dz, &__payload, native_scalars TSRMLS_CC);
+							php_protocolbuffers_format_string(&dzz, &__payload, native_scalars TSRMLS_CC);
 
-							php_protocolbuffers_decode_add_value_and_consider_repeated(container, s, hresult, dz TSRMLS_CC);
+							php_protocolbuffers_decode_add_value_and_consider_repeated(container, s, hresult, &dzz TSRMLS_CC);
 						}
 						break;
 						case TYPE_UINT64:
@@ -593,9 +593,9 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 //							MAKE_STD_ZVAL(dz);
 
 							__payload.type = TYPE_UINT64;__payload.value.uint64 = v2;
-							php_protocolbuffers_format_string(dz, &__payload, native_scalars TSRMLS_CC);
+							php_protocolbuffers_format_string(&dzz, &__payload, native_scalars TSRMLS_CC);
 
-							php_protocolbuffers_decode_add_value_and_consider_repeated(container, s, hresult, dz TSRMLS_CC);
+							php_protocolbuffers_decode_add_value_and_consider_repeated(container, s, hresult, &dzz TSRMLS_CC);
 						}
 						break;
 						break;
@@ -605,9 +605,9 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 //							MAKE_STD_ZVAL(dz);
 
 							__payload.type = TYPE_INT32;__payload.value.int32 = (int32_t)payload;
-							php_protocolbuffers_format_string(dz, &__payload, native_scalars TSRMLS_CC);
+							php_protocolbuffers_format_string(&dzz, &__payload, native_scalars TSRMLS_CC);
 
-							php_protocolbuffers_decode_add_value_and_consider_repeated(container, s, hresult, dz TSRMLS_CC);
+							php_protocolbuffers_decode_add_value_and_consider_repeated(container, s, hresult, &dzz TSRMLS_CC);
 						break;
 						case TYPE_FIXED64:
 						{
@@ -616,9 +616,9 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 
 //							MAKE_STD_ZVAL(dz);
 							__payload.type = TYPE_UINT64;__payload.value.uint64 = l;
-							php_protocolbuffers_format_string(dz, &__payload, native_scalars TSRMLS_CC);
+							php_protocolbuffers_format_string(&dzz, &__payload, native_scalars TSRMLS_CC);
 
-							php_protocolbuffers_decode_add_value_and_consider_repeated(container, s, hresult, dz TSRMLS_CC);
+							php_protocolbuffers_decode_add_value_and_consider_repeated(container, s, hresult, &dzz TSRMLS_CC);
 							data += 8;
 						}
 						break;
@@ -629,9 +629,9 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 
 //							MAKE_STD_ZVAL(dz);
 							__payload.type = TYPE_UINT32;__payload.value.uint32 = l;
-							php_protocolbuffers_format_string(dz, &__payload, native_scalars TSRMLS_CC);
+							php_protocolbuffers_format_string(&dzz, &__payload, native_scalars TSRMLS_CC);
 
-							php_protocolbuffers_decode_add_value_and_consider_repeated(container, s, hresult, dz TSRMLS_CC);
+							php_protocolbuffers_decode_add_value_and_consider_repeated(container, s, hresult, &dzz TSRMLS_CC);
 
 							data += 4;
 						}
@@ -640,26 +640,26 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 							data = ReadVarint32FromArray(data, &payload, data_end);
 
 //							MAKE_STD_ZVAL(dz);
-							ZVAL_BOOL(dz, payload);
+							ZVAL_BOOL(&dzz, payload);
 
-							php_protocolbuffers_decode_add_value_and_consider_repeated(container, s, hresult, dz TSRMLS_CC);
+							php_protocolbuffers_decode_add_value_and_consider_repeated(container, s, hresult, &dzz TSRMLS_CC);
 						break;
 						case TYPE_UINT32:
 							data = ReadVarint32FromArray(data, &payload, data_end);
 
 //							MAKE_STD_ZVAL(dz);
 							__payload.type = TYPE_UINT32;__payload.value.uint32 = (uint32_t)payload;
-							php_protocolbuffers_format_string(dz, &__payload, native_scalars TSRMLS_CC);
+							php_protocolbuffers_format_string(&dzz, &__payload, native_scalars TSRMLS_CC);
 
-							php_protocolbuffers_decode_add_value_and_consider_repeated(container, s, hresult, dz TSRMLS_CC);
+							php_protocolbuffers_decode_add_value_and_consider_repeated(container, s, hresult, &dzz TSRMLS_CC);
 						break;
 						case TYPE_ENUM:
 							data = ReadVarint32FromArray(data, &payload, data_end);
 
 //							MAKE_STD_ZVAL(dz);
-							ZVAL_LONG(dz, (int32_t)payload);
+							ZVAL_LONG(&dzz, (int32_t)payload);
 
-							php_protocolbuffers_decode_add_value_and_consider_repeated(container, s, hresult, dz TSRMLS_CC);
+							php_protocolbuffers_decode_add_value_and_consider_repeated(container, s, hresult, &dzz TSRMLS_CC);
 						break;
 						case TYPE_SFIXED32:
 						{
@@ -669,9 +669,9 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 //							MAKE_STD_ZVAL(dz);
 
 							__payload.type = TYPE_INT32;__payload.value.int32 = l;
-							php_protocolbuffers_format_string(dz, &__payload, native_scalars TSRMLS_CC);
+							php_protocolbuffers_format_string(&dzz, &__payload, native_scalars TSRMLS_CC);
 
-							php_protocolbuffers_decode_add_value_and_consider_repeated(container, s, hresult, dz TSRMLS_CC);
+							php_protocolbuffers_decode_add_value_and_consider_repeated(container, s, hresult, &dzz TSRMLS_CC);
 							data += 4;
 						}
 						break;
@@ -682,9 +682,9 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 
 //							MAKE_STD_ZVAL(dz);
 							__payload.type = TYPE_INT64;__payload.value.int64 = l;
-							php_protocolbuffers_format_string(dz, &__payload, native_scalars TSRMLS_CC);
+							php_protocolbuffers_format_string(&dzz, &__payload, native_scalars TSRMLS_CC);
 
-							php_protocolbuffers_decode_add_value_and_consider_repeated(container, s, hresult, dz TSRMLS_CC);
+							php_protocolbuffers_decode_add_value_and_consider_repeated(container, s, hresult, &dzz TSRMLS_CC);
 
 							data += 8;
 						}
@@ -694,9 +694,9 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 
 //							MAKE_STD_ZVAL(dz);
 							__payload.type = TYPE_INT32;__payload.value.int32 = (int32_t)zigzag_decode32(payload);
-							php_protocolbuffers_format_string(dz, &__payload, native_scalars TSRMLS_CC);
+							php_protocolbuffers_format_string(&dzz, &__payload, native_scalars TSRMLS_CC);
 
-							php_protocolbuffers_decode_add_value_and_consider_repeated(container, s, hresult, dz TSRMLS_CC);
+							php_protocolbuffers_decode_add_value_and_consider_repeated(container, s, hresult, &dzz TSRMLS_CC);
 						break;
 						case TYPE_SINT64:
 						{
@@ -845,26 +845,26 @@ int php_protocolbuffers_decode(INTERNAL_FUNCTION_PARAMETERS, char *data,long dat
 
 	/* add unknown fields */
 	if (container->process_unknown_fields > 0) {
-		zval *un = NULL, *unknown = NULL;
-		char *unknown_name = {0};
-		int unknown_name_len = 0;
+		zval *un = NULL, unknown;
+		//char *unknown_name = {0};
+		//int unknown_name_len = 0;
 
 //		MAKE_STD_ZVAL(unknown);
 
-		object_init_ex(unknown, php_protocol_buffers_unknown_field_set_class_entry);
-		php_protocolbuffers_unknown_field_set_properties_init(unknown TSRMLS_CC);
+		object_init_ex(&unknown, php_protocol_buffers_unknown_field_set_class_entry);
+		php_protocolbuffers_unknown_field_set_properties_init(&unknown TSRMLS_CC);
 
 		zend_string *unknown_name_key = zend_mangle_property_name((char*)"*", 1, (char*)"_unknown", sizeof("_unknown"), 0);
 		if ((un=zend_hash_find(Z_OBJPROP_P(&obj), unknown_name_key)) == NULL) {
-			zend_hash_update(Z_OBJPROP_P(&obj), unknown_name_key, unknown);
+			zend_hash_update(Z_OBJPROP_P(&obj), unknown_name_key, &unknown);
 		} else {
 			if (Z_TYPE_P(un) == IS_NULL) {
-				zend_hash_update(Z_OBJPROP_P(&obj), unknown_name_key, unknown);
+				zend_hash_update(Z_OBJPROP_P(&obj), unknown_name_key, &unknown);
 			} else {
-				efree(unknown);
+				efree(&unknown);
 			}
 		}
-		efree(unknown_name);
+		//efree(unknown_name);
 	}
 
 	res = php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAM_PASSTHRU, data, data_end, container, PBG(native_scalars), &obj);
@@ -988,7 +988,8 @@ int php_protocolbuffers_properties_init(zval *object, zend_class_entry *ce TSRML
 				array_init(&pp);
 			} else {
 				if(scheme->default_value!=NULL&&Z_TYPE_P(scheme->default_value) != IS_NULL){
-					ZVAL_ZVAL(&pp, scheme->default_value, 1, 0);
+					//ZVAL_ZVAL(&pp, scheme->default_value, 1, 0);
+					ZVAL_COPY_VALUE(&pp, scheme->default_value);
 				}else{
 //					if (Z_TYPE_P(scheme->default_value) != IS_NULL) {
 //						ZVAL_ZVAL(&pp, scheme->default_value, 1, 0);
