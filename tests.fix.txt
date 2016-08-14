@@ -6,6 +6,12 @@ Expected fail   :    0 (  0.0%) (  0.0%)
 Tests passed    :   77 ( 53.5%) ( 53.5%)
 
 
+core.c:157
+zend_hash_next_index_insert(p->ht, (void *)val);
+//this should be changed in zend_hash_next_index_insert_ptr();
+//and the place where use this hashtable should be changed too.
+
+
 
 #1
 tests/004_decode_bool.php
