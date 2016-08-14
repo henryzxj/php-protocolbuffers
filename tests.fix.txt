@@ -1,0 +1,97 @@
+Number of tests :  144               144
+Tests skipped   :    0 (  0.0%) --------
+Tests warned    :    0 (  0.0%) (  0.0%)
+Tests failed    :   67 ( 46.5%) ( 46.5%)
+Expected fail   :    0 (  0.0%) (  0.0%)
+Tests passed    :   77 ( 53.5%) ( 53.5%)
+
+
+
+#1
+tests/004_decode_bool.php
+tests/004_decode_double_sample.php
+tests/004_decode_bytes.php
+tests/004_decode_fixed32_init.php
+tests/004_decode_fixed32_max.php
+tests/004_decode_float_sample.php
+tests/004_decode_float_signed.php
+tests/004_decode_int32_init.php
+tests/004_decode_int32_max.php
+tests/004_decode_int32_min.php
+tests/004_decode_sfixed32_signed.php
+tests/004_decode_sfixed32_unsigned.php
+tests/004_decode_sint32_init.php
+tests/004_decode_sint32_max.php
+tests/004_decode_sint32_min.php
+tests/004_decode_string_0bytes.php
+tests/004_decode_string_1024bytes.php
+output invalid
+get protected property of a class bug
+get property null
+core.c:843
+object_init_ex(&obj, ce);
+//class properties were not copy to the object,so can not get property in php code
+
+
+#2
+tests/003_has_message_decode.php
+Call to a member function getType() on null 
+#3
+tests/100_field_descriptor.php
+Fatal error: Uncaught InvalidArgumentException: type does not have values
+#4
+tests/005_decode_sint64_packed.php
+Out of memory
+#5
+tests/105_enum_descriptor_builder.php
+200_unknown_fields
+200_unknown_fields_discard
+300_use_single_property
+400_message_clear
+400_message_clear_all
+400_message_iterator
+400_message_magicmethods
+500_unknown_bytes
+500_unknown_double
+500_unknown_float
+500_unknown_int32
+500_unknown_iterator
+500_unknown_repeated_string
+500_unknown_string
+600_constructor
+600_extension
+600_sleep
+600_wakeup
+700_jsonserializable
+700_jsonserializable_invalid_utf8
+700_merge_from
+700_set_from
+700_toarray_invalid_utf8
+800_helper_debug_zval
+999_append
+999_bytes_bug
+999_conformance_quick
+999_default_value
+999_dont_accept_null_value
+999_magicmethod_snakecase_to_lower_case
+999_magicmethod_throw_exception_when_doesnt_resolve
+999_missing_message
+999_no15_varint_should_read_64bit_integer
+999_no25_setter_getter_consider_camel_case_fields
+999_no31_initialize_target_should_be_same_name_as_declarations
+999_no33_batch_assignment
+999_no41_constructor_should_accept_object
+999_no_19_regression_script_contains_large_number_literals
+999_no_8_magic_method_for_case_sensitive_field
+999_number_larger_2_63-1
+999_php_message_options_set_single_property_name
+999_regression_multiple_repeated_fields
+999_required_property
+Segmentation fault (core dumped)
+
+
+
+
+
+
+
