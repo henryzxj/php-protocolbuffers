@@ -1,2 +1,2 @@
 #!/bin/sh
-gdb /usr/local/php7/bin/php
+cgdb /usr/local/php7/bin/php

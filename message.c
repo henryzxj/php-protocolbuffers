@@ -185,12 +185,12 @@ static void php_protocolbuffers_get_hash(php_protocolbuffers_scheme_container *c
 		}
 
 		n = ZSTR_VAL(scheme->name_key);
-		n_len = ZVAL_LEN(scheme->name_key);
+		n_len = ZSTR_LEN(scheme->name_key);
 	} else {
 		htt = Z_OBJPROP_P(object);
 
 		n = ZSTR_VAL(scheme->mangled_name_key);
-		n_len = ZVAL_LEN(scheme->mangled_name_key);
+		n_len = ZSTR_LEN(scheme->mangled_name_key);
 	}
 
 	name = &n;

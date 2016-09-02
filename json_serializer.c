@@ -113,7 +113,7 @@ static int _json_serializer_enum(
 	if (scheme->repeated) {
 		add_next_index_long(result, value);
 	} else {
-		add_assoc_long_ex(result, ZSTR_VAL(scheme->original_name_key), ZVAL_LEN(scheme->original_name_key), value);
+		add_assoc_long_ex(result, ZSTR_VAL(scheme->original_name_key), ZSTR_LEN(scheme->original_name_key), value);
 	}
 
 	return 0;
@@ -131,7 +131,7 @@ static int _json_serializer_sint32(
 	if (scheme->repeated) {
 		add_next_index_long(result, value);
 	} else {
-		add_assoc_long_ex(result, ZSTR_VAL(scheme->original_name_key), ZVAL_LEN(scheme->original_name_key), value);
+		add_assoc_long_ex(result, ZSTR_VAL(scheme->original_name_key), ZSTR_LEN(scheme->original_name_key), value);
 	}
 
 	return 0;
@@ -149,7 +149,7 @@ static int _json_serializer_sint64(
 	if (scheme->repeated) {
 		add_next_index_long(result, value);
 	} else {
-		add_assoc_long_ex(result, ZSTR_VAL(scheme->original_name_key), ZVAL_LEN(scheme->original_name_key), value);
+		add_assoc_long_ex(result, ZSTR_VAL(scheme->original_name_key), ZSTR_LEN(scheme->original_name_key), value);
 	}
 
 	return 0;
@@ -167,7 +167,7 @@ static int _json_serializer_fixed64(
 	if (scheme->repeated) {
 		add_next_index_long(result, value);
 	} else {
-		add_assoc_long_ex(result, ZSTR_VAL(scheme->original_name_key), ZVAL_LEN(scheme->original_name_key), value);
+		add_assoc_long_ex(result, ZSTR_VAL(scheme->original_name_key), ZSTR_LEN(scheme->original_name_key), value);
 	}
 
 	return 0;
@@ -185,7 +185,7 @@ static int _json_serializer_sfixed32(
 	if (scheme->repeated) {
 		add_next_index_long(result, value);
 	} else {
-		add_assoc_long_ex(result, ZSTR_VAL(scheme->original_name_key), ZVAL_LEN(scheme->original_name_key), value);
+		add_assoc_long_ex(result, ZSTR_VAL(scheme->original_name_key), ZSTR_LEN(scheme->original_name_key), value);
 	}
 
 	return 0;
@@ -203,7 +203,7 @@ static int _json_serializer_sfixed64(
 	if (scheme->repeated) {
 		add_next_index_long(result, value);
 	} else {
-		add_assoc_long_ex(result, ZSTR_VAL(scheme->original_name_key), ZVAL_LEN(scheme->original_name_key), value);
+		add_assoc_long_ex(result, ZSTR_VAL(scheme->original_name_key), ZSTR_LEN(scheme->original_name_key), value);
 	}
 
 	return 0;
@@ -221,7 +221,7 @@ static int _json_serializer_fixed32(
 	if (scheme->repeated) {
 		add_next_index_long(result, value);
 	} else {
-		add_assoc_long_ex(result, ZSTR_VAL(scheme->original_name_key), ZVAL_LEN(scheme->original_name_key), value);
+		add_assoc_long_ex(result, ZSTR_VAL(scheme->original_name_key), ZSTR_LEN(scheme->original_name_key), value);
 	}
 
 	return 0;
@@ -239,7 +239,7 @@ static int _json_serializer_uint32(
 	if (scheme->repeated) {
 		add_next_index_long(result, value);
 	} else {
-		add_assoc_long_ex(result, ZSTR_VAL(scheme->original_name_key), ZVAL_LEN(scheme->original_name_key), value);
+		add_assoc_long_ex(result, ZSTR_VAL(scheme->original_name_key), ZSTR_LEN(scheme->original_name_key), value);
 	}
 
 	return 0;
@@ -257,7 +257,7 @@ static int _json_serializer_bool(
 	if (scheme->repeated) {
 		add_next_index_bool(result, value);
 	} else {
-		add_assoc_bool_ex(result, ZSTR_VAL(scheme->original_name_key), ZVAL_LEN(scheme->original_name_key), value);
+		add_assoc_bool_ex(result, ZSTR_VAL(scheme->original_name_key), ZSTR_LEN(scheme->original_name_key), value);
 	}
 
 	return 0;
@@ -276,7 +276,7 @@ static int _json_serializer_int64(
 	if (scheme->repeated) {
 		add_next_index_long(result, value);
 	} else {
-		add_assoc_long_ex(result, ZSTR_VAL(scheme->original_name_key), ZVAL_LEN(scheme->original_name_key), value);
+		add_assoc_long_ex(result, ZSTR_VAL(scheme->original_name_key), ZSTR_LEN(scheme->original_name_key), value);
 	}
 
 	return 0;
@@ -294,7 +294,7 @@ static int _json_serializer_uint64(
 	if (scheme->repeated) {
 		add_next_index_long(result, value);
 	} else {
-		add_assoc_long_ex(result, ZSTR_VAL(scheme->original_name_key), ZVAL_LEN(scheme->original_name_key), value);
+		add_assoc_long_ex(result, ZSTR_VAL(scheme->original_name_key), ZSTR_LEN(scheme->original_name_key), value);
 	}
 
 	return 0;
@@ -313,7 +313,7 @@ static int _json_serializer_int32(
 	if (scheme->repeated) {
 		add_next_index_long(result, value);
 	} else {
-		add_assoc_long_ex(result, ZSTR_VAL(scheme->original_name_key), ZVAL_LEN(scheme->original_name_key), value);
+		add_assoc_long_ex(result, ZSTR_VAL(scheme->original_name_key), ZSTR_LEN(scheme->original_name_key), value);
 	}
 
 	return 0;
@@ -331,7 +331,7 @@ static int _json_serializer_bytes(
 	if (scheme->repeated) {
 		add_next_index_stringl(result, value, value_len);
 	} else {
-		add_assoc_stringl_ex(result, ZSTR_VAL(scheme->original_name_key), ZVAL_LEN(scheme->original_name_key), value, value_len);
+		add_assoc_stringl_ex(result, ZSTR_VAL(scheme->original_name_key), ZSTR_LEN(scheme->original_name_key), value, value_len);
 	}
 
 	return 0;
@@ -350,7 +350,7 @@ static int _json_serializer_string(
 	if (scheme->repeated) {
 		add_next_index_stringl(result, value, value_len);
 	} else {
-		add_assoc_stringl_ex(result, ZSTR_VAL(scheme->original_name_key), ZVAL_LEN(scheme->original_name_key), (char*)value, value_len);
+		add_assoc_stringl_ex(result, ZSTR_VAL(scheme->original_name_key), ZSTR_LEN(scheme->original_name_key), (char*)value, value_len);
 	}
 
 	return 0;
@@ -373,7 +373,7 @@ static int _json_serializer_message(
 	if (scheme->repeated) {
 		add_next_index_zval(result, tmp);
 	} else {
-		add_assoc_zval_ex(result, ZSTR_VAL(scheme->original_name_key), ZVAL_LEN(scheme->original_name_key), tmp);
+		add_assoc_zval_ex(result, ZSTR_VAL(scheme->original_name_key), ZSTR_LEN(scheme->original_name_key), tmp);
 	}
 
 	return 0;
@@ -408,7 +408,7 @@ static const char* php_protocolbuffers_get_property_name(php_protocolbuffers_sch
 	const char *name;
 	if (container->use_single_property < 1) {
 		name = ZSTR_VAL(scheme->mangled_name_key);
-		*name_len = ZVAL_LEN(scheme->mangled_name_key);
+		*name_len = ZSTR_LEN(scheme->mangled_name_key);
 	} else {
 		name = ZSTR_VAL(scheme->name_key);
 		*name_len = ZSTR_LEN(scheme->name_key);

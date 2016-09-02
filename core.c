@@ -95,7 +95,7 @@ int php_protocolbuffers_get_scheme_container(zend_string *klass, php_protocolbuf
 int php_protocolbuffers_get_scheme_container_ex(zend_string *klass, int throws_exception, php_protocolbuffers_scheme_container **result TSRMLS_DC)
 {
 	php_protocolbuffers_scheme_container *cn;
-	if ((cn=(php_protocolbuffers_scheme_container *)zend_hash_find_ptr(PBG(messages), klass)) == NULL) {
+	if ((cn=zend_hash_find_ptr(PBG(messages), klass)) == NULL) {
 		zval ret;
 		zend_class_entry *ce = NULL;
 		if ((ce=(zend_class_entry *)zend_lookup_class(klass)) == NULL) {
@@ -117,7 +117,7 @@ int php_protocolbuffers_get_scheme_container_ex(zend_string *klass, int throws_e
 				if (entry == php_protocol_buffers_descriptor_class_entry) {
 					desc = PHP_PROTOCOLBUFFERS_GET_OBJECT(php_protocolbuffers_descriptor, &ret);
 					desc->free_container = 1;
-					zend_hash_add_ptr(PBG(messages), klass, (void *)desc->container);
+					zend_hash_add_ptr(PBG(messages), klass, desc->container);
 				} else {
 					zend_throw_exception_ex(php_protocol_buffers_invalid_protocolbuffers_exception_class_entry, 0 TSRMLS_CC, "getDescriptor returns unexpected class");
 					if (&ret != NULL) {
@@ -799,7 +799,7 @@ int php_protocolbuffers_encode(INTERNAL_FUNCTION_PARAMETERS, zend_class_entry *c
 	return 0;
 }
 
-int php_protocolbuffers_decode(INTERNAL_FUNCTION_PARAMETERS, char *data,long data_len, zend_string *klass)
+int php_protocolbuffers_decode(INTERNAL_FUNCTION_PARAMETERS, const char *data,long data_len, zend_string *klass)
 {
 	zval obj;
 	php_protocolbuffers_scheme_container *container;
@@ -828,10 +828,10 @@ int php_protocolbuffers_decode(INTERNAL_FUNCTION_PARAMETERS, char *data,long dat
 		/* Memo: fast lookup */
 //		if (zend_hash_find(PBG(classes), (char*)klass, klass_len, (void **)&ce) == FAILURE) {
 		//zend_string *klass_name = zend_string_init((char*)klass, klass_len,0);
-		if ((ce=(zend_class_entry *)zend_hash_find_ptr(PBG(classes), klass)) == NULL) {
+		if ((ce=zend_hash_find_ptr(PBG(classes), klass)) == NULL) {
 			ce = zend_lookup_class(klass);
 			if (ce != NULL) {
-				zend_hash_update_ptr(PBG(classes), klass, (void *)ce);
+				zend_hash_update_ptr(PBG(classes), klass, ce);
 			} else {
 				php_error_docref(NULL TSRMLS_CC, E_ERROR, "class lookup failed. %s does exist", klass);
 				return 1;
@@ -839,10 +839,10 @@ int php_protocolbuffers_decode(INTERNAL_FUNCTION_PARAMETERS, char *data,long dat
 		}
 	}
 
-	//MAKE_STD_ZVAL(obj);
 	object_init_ex(&obj, ce);
+	php_var_dump(&obj,1);
 	php_protocolbuffers_properties_init(&obj, ce TSRMLS_CC);
-
+	php_var_dump(&obj,1);
 	/* add unknown fields */
 	if (container->process_unknown_fields > 0) {
 		zval *un = NULL, unknown;
@@ -879,8 +879,8 @@ int php_protocolbuffers_decode(INTERNAL_FUNCTION_PARAMETERS, char *data,long dat
 	if (container->use_wakeup_and_sleep > 0) {
 		php_protocolbuffers_execute_wakeup(&obj, container TSRMLS_CC);
 	}
-
-	RETVAL_ZVAL(&obj, 0, 1);
+	php_var_dump(&obj,1);
+	RETVAL_ZVAL(&obj,0,1);
 	return 0;
 }
 
