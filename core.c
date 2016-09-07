@@ -316,7 +316,7 @@ void php_protocolbuffers_format_string(zval *result, pbf *payload, int native_sc
 				char *p = 0;
 				free = 1;
 
-				/* Note: this is safe */
+				// Note: this is safe
 				buffer = emalloc(MAX_LENGTH_OF_DOUBLE + EG(precision) + 1);
 				size = zend_sprintf(buffer, "%f", payload->value.f);
 
@@ -340,7 +340,7 @@ void php_protocolbuffers_format_string(zval *result, pbf *payload, int native_sc
 			break;
 			case TYPE_DOUBLE:{
 				free = 1;
-				/* Note: this is safe */
+				/// Note: this is safe
 				buffer = emalloc(MAX_LENGTH_OF_DOUBLE + EG(precision) + 1);
 				size = zend_sprintf(buffer, "%.*G", (int)EG(precision), payload->value.d);
 			}
@@ -352,7 +352,9 @@ void php_protocolbuffers_format_string(zval *result, pbf *payload, int native_sc
 		}
 
 		if (buffer != NULL) {
-			ZVAL_STRINGL(result, buffer, size);
+			zend_string *buff = zend_string_init(buffer,size,0);
+			ZVAL_STR(result,buff);
+			zend_string_release(buff);
 		}
 		if (free) {
 			efree(buffer);
@@ -364,7 +366,6 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 {
 	uint32_t payload = 0, tag = 0, wiretype = 0;
 	uint64_t value = 0;
-	zval *dz = NULL;
 	zval dzz;
 	HashTable *hresult;
 	pbf __payload = {0};
@@ -440,24 +441,24 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 					/* skip unknown field */
 				}
 			} else if (s->type == TYPE_STRING) {
-//				MAKE_STD_ZVAL(dz);
+//				zend_string *data_str = zend_string_init(data,payload,0);
 				ZVAL_STRINGL(&dzz, (char*)data, payload);
-
+//				ZVAL_STR(&dzz,data_str);
+//				zend_string_release(data_str);
 				php_protocolbuffers_decode_add_value_and_consider_repeated(container, s, result, &dzz TSRMLS_CC);
 
 			} else if (s->type == TYPE_BYTES) {
-//				MAKE_STD_ZVAL(dz);
 				ZVAL_STRINGL(&dzz, (char*)data, payload);
 
 				php_protocolbuffers_decode_add_value_and_consider_repeated(container, s, result, &dzz TSRMLS_CC);
 			} else if (s->type == TYPE_MESSAGE) {
 				const char *n_buffer_end = data + payload;
-				zval *z_obj = NULL;
+				zval *z_obj1 = NULL;
 				zval zz_obj;
 				php_protocolbuffers_scheme_container *c_container = NULL;
-				char *name1 = {0};
-				int name_length1 = 0;
-				ulong name_hash = 0;
+//				char *name1 = {0};
+//				int name_length1 = 0;
+//				ulong name_hash = 0;
 				zend_string *name_key = NULL;
 
 				php_protocolbuffers_get_scheme_container(s->ce->name, &c_container TSRMLS_CC);
@@ -474,22 +475,19 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 //					name_hash   = s->name_h;
 					name_key = s->name_key;
 				}
-//				name_key = zend_string_init(name,name_length,0);
 				if (prior_scheme != NULL && prior_scheme == s && !s->repeated) {
 					/* NOTE: some protobuf implementation will split child message into each filed. */
 					zval *tt;
 
-//					if (zend_hash_quick_find(hresult, name, name_length, name_hash, (void **)&tt) == SUCCESS) {
 					if ((tt=zend_hash_find(hresult, name_key)) != NULL) {
-						z_obj = tt;
-						Z_ADDREF_P(z_obj);
+//						zz_obj = tt;
+						ZVAL_COPY(&zz_obj,tt);
+						Z_TRY_ADDREF(zz_obj);
 					} else {
-//						MAKE_STD_ZVAL(z_obj);
-						object_init_ex(z_obj, s->ce);
-						php_protocolbuffers_properties_init(z_obj, s->ce TSRMLS_CC);
+						object_init_ex(&zz_obj, s->ce);
+						php_protocolbuffers_properties_init(&zz_obj, s->ce TSRMLS_CC);
 					}
 				} else {
-//					MAKE_STD_ZVAL(z_obj);
 					object_init_ex(&zz_obj, s->ce);
 					php_protocolbuffers_properties_init(&zz_obj, s->ce TSRMLS_CC);
 
@@ -519,8 +517,6 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 						zend_hash_next_index_insert(Z_ARRVAL(arr), &zz_obj);
 						Z_TRY_ADDREF(arr);
 						//Z_ADDREF_P(&arr);
-//						zend_hash_update(hresult, name_key, arr);
-//						zend_update_property(result_ce,result,name_key,&arr);
 						zend_update_property(result_ce,result,ZSTR_VAL(name_key),ZSTR_LEN(name_key),&arr);
 						zval_ptr_dtor(&arr);
 					} else {
@@ -532,9 +528,8 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 						}
 					}
 				} else {
-//					zend_hash_str_update(hresult,name,name_length,&zz_obj);
 					zend_update_property(result_ce,result,ZSTR_VAL(name_key),ZSTR_LEN(name_key),&zz_obj);
-					Z_ADDREF_P(&zz_obj);
+//					Z_ADDREF_P(&zz_obj);
 				}
 
 				zval_ptr_dtor(&zz_obj);
@@ -552,7 +547,6 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 							memcpy(&_v, data, 8);
 
 							d = decode_double(_v);
-//							MAKE_STD_ZVAL(dz);
 
 							__payload.type = TYPE_DOUBLE;__payload.value.d = d;
 							php_protocolbuffers_format_string(&dzz, &__payload, native_scalars TSRMLS_CC);
@@ -569,7 +563,6 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 							memcpy(&_v, data, 4);
 							a = decode_float(_v);
 
-//							MAKE_STD_ZVAL(dz);
 
 							__payload.type = TYPE_DOUBLE;__payload.value.d = a;
 							php_protocolbuffers_format_string(&dzz, &__payload, native_scalars TSRMLS_CC);
@@ -584,7 +577,6 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 							uint64_t v2;
 							data = ReadVarint64FromArray(data, &v2, data_end);
 
-//							MAKE_STD_ZVAL(dz);
 
 							__payload.type = TYPE_INT64;__payload.value.int64 = v2;
 							php_protocolbuffers_format_string(&dzz, &__payload, native_scalars TSRMLS_CC);
@@ -597,7 +589,6 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 							uint64_t v2;
 							data = ReadVarint64FromArray(data, &v2, data_end);
 
-//							MAKE_STD_ZVAL(dz);
 
 							__payload.type = TYPE_UINT64;__payload.value.uint64 = v2;
 							php_protocolbuffers_format_string(&dzz, &__payload, native_scalars TSRMLS_CC);
@@ -609,7 +600,6 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 						case TYPE_INT32:
 							data = ReadVarint32FromArray(data, &payload, data_end);
 
-//							MAKE_STD_ZVAL(dz);
 
 							__payload.type = TYPE_INT32;__payload.value.int32 = (int32_t)payload;
 							php_protocolbuffers_format_string(&dzz, &__payload, native_scalars TSRMLS_CC);
@@ -621,7 +611,6 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 							uint64_t l;
 							memcpy(&l, data, 8);
 
-//							MAKE_STD_ZVAL(dz);
 							__payload.type = TYPE_UINT64;__payload.value.uint64 = l;
 							php_protocolbuffers_format_string(&dzz, &__payload, native_scalars TSRMLS_CC);
 
@@ -634,7 +623,6 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 							uint32_t l = 0;
 							memcpy(&l, data, 4);
 
-//							MAKE_STD_ZVAL(dz);
 							__payload.type = TYPE_UINT32;__payload.value.uint32 = l;
 							php_protocolbuffers_format_string(&dzz, &__payload, native_scalars TSRMLS_CC);
 
@@ -646,7 +634,6 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 						case TYPE_BOOL:
 							data = ReadVarint32FromArray(data, &payload, data_end);
 
-//							MAKE_STD_ZVAL(dz);
 							ZVAL_BOOL(&dzz, payload);
 
 							php_protocolbuffers_decode_add_value_and_consider_repeated(container, s, result, &dzz TSRMLS_CC);
@@ -654,7 +641,6 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 						case TYPE_UINT32:
 							data = ReadVarint32FromArray(data, &payload, data_end);
 
-//							MAKE_STD_ZVAL(dz);
 							__payload.type = TYPE_UINT32;__payload.value.uint32 = (uint32_t)payload;
 							php_protocolbuffers_format_string(&dzz, &__payload, native_scalars TSRMLS_CC);
 
@@ -663,7 +649,6 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 						case TYPE_ENUM:
 							data = ReadVarint32FromArray(data, &payload, data_end);
 
-//							MAKE_STD_ZVAL(dz);
 							ZVAL_LONG(&dzz, (int32_t)payload);
 
 							php_protocolbuffers_decode_add_value_and_consider_repeated(container, s, result, &dzz TSRMLS_CC);
@@ -673,7 +658,6 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 							int32_t l = 0;
 
 							memcpy(&l, data, 4);
-//							MAKE_STD_ZVAL(dz);
 
 							__payload.type = TYPE_INT32;__payload.value.int32 = l;
 							php_protocolbuffers_format_string(&dzz, &__payload, native_scalars TSRMLS_CC);
@@ -687,7 +671,6 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 							int64_t l;
 							memcpy(&l, data, 8);
 
-//							MAKE_STD_ZVAL(dz);
 							__payload.type = TYPE_INT64;__payload.value.int64 = l;
 							php_protocolbuffers_format_string(&dzz, &__payload, native_scalars TSRMLS_CC);
 
@@ -699,7 +682,6 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 						case TYPE_SINT32:
 							data = ReadVarint32FromArray(data, &payload, data_end);
 
-//							MAKE_STD_ZVAL(dz);
 							__payload.type = TYPE_INT32;__payload.value.int32 = (int32_t)zigzag_decode32(payload);
 							php_protocolbuffers_format_string(&dzz, &__payload, native_scalars TSRMLS_CC);
 
@@ -710,7 +692,6 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 							uint64_t v2;
 							data = ReadVarint64FromArray(data, &v2, data_end);
 
-//							MAKE_STD_ZVAL(dz);
 
 							__payload.type = TYPE_SINT64;__payload.value.int64 = (int64_t)zigzag_decode64(v2);
 							php_protocolbuffers_format_string(&dzz, &__payload, native_scalars TSRMLS_CC);
@@ -833,8 +814,6 @@ int php_protocolbuffers_decode(INTERNAL_FUNCTION_PARAMETERS, const char *data,lo
 
 	if (PBG(classes)) {
 		/* Memo: fast lookup */
-//		if (zend_hash_find(PBG(classes), (char*)klass, klass_len, (void **)&ce) == FAILURE) {
-		//zend_string *klass_name = zend_string_init((char*)klass, klass_len,0);
 		if ((ce=zend_hash_find_ptr(PBG(classes), klass)) == NULL) {
 			ce = zend_lookup_class(klass);
 			if (ce != NULL) {
@@ -854,8 +833,6 @@ int php_protocolbuffers_decode(INTERNAL_FUNCTION_PARAMETERS, const char *data,lo
 		//char *unknown_name = {0};
 		//int unknown_name_len = 0;
 
-//		MAKE_STD_ZVAL(unknown);
-
 		object_init_ex(&unknown, php_protocol_buffers_unknown_field_set_class_entry);
 		php_protocolbuffers_unknown_field_set_properties_init(&unknown TSRMLS_CC);
 
@@ -869,14 +846,14 @@ int php_protocolbuffers_decode(INTERNAL_FUNCTION_PARAMETERS, const char *data,lo
 				efree(&unknown);
 			}
 		}
-		//efree(unknown_name);
+		zend_string_release(unknown_name_key);
 	}
 
 	res = php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAM_PASSTHRU, data, data_end, container, PBG(native_scalars), &obj);
 	if (res == NULL) {
-//		if (obj != NULL) {
+		if (Z_TYPE(obj) != IS_NULL) {
 			zval_ptr_dtor(&obj);
-//		}
+		}
 		zend_throw_exception_ex(php_protocol_buffers_invalid_protocolbuffers_exception_class_entry, 0 TSRMLS_CC, "passed variable contains malformed byte sequence. or it contains unsupported tag");
 		return 0;
 	}
@@ -884,17 +861,6 @@ int php_protocolbuffers_decode(INTERNAL_FUNCTION_PARAMETERS, const char *data,lo
 	if (container->use_wakeup_and_sleep > 0) {
 		php_protocolbuffers_execute_wakeup(&obj, container TSRMLS_CC);
 	}
-//	zval rv,*p_val;
-//	HashTable *ht = Z_OBJPROP_P(&obj);
-	//p ht->arData[1]->val->value->str->val@1
-	//输出的{"0"}
-//	IS_NULL
-//	zend_string *value_key = zend_mangle_property_name((char*)"*", 1, (char*)"value", sizeof("value")-1, 0);
-//	p_val = zend_read_property(Z_OBJCE(obj),&obj,ZEND_STRL("value"), 0,&rv);
-//	p_val = zend_hash_find(ht,value_key);
-//	php_var_dump(p_val,1);
-	//输出的是：NULL
-//	php_var_dump(&obj,1);
 	RETVAL_ZVAL(&obj,0,1);
 	return 0;
 }

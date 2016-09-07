@@ -86,7 +86,7 @@ static void php_protocolbuffers_descriptor_free_storage(zend_object *object TSRM
 		efree(intern->name);
 	}
 
-	if (intern->container != NULL && intern->free_container <= 1) {
+	if (intern->container != NULL && intern->free_container < 1) {
 		int i;
 
 		for (i = 0; i < intern->container->size; i++) {

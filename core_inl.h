@@ -364,10 +364,11 @@ static inline void php_protocolbuffers_decode_add_value_and_consider_repeated(ph
 		}
 	} else {
 		//Z_ADDREF_P(dz);
-		Z_TRY_ADDREF_P(dz);
+//		Z_TRY_ADDREF_P(dz);
 //		zend_hash_quick_update(hresult, name, name_len, hash, (void **)&dz, sizeof(dz), NULL);
 		//zend_hash_update(hresult,name_key,dz);
 		zend_update_property(result_ce,result,ZSTR_VAL(name_key),ZSTR_LEN(name_key),dz);
+		zval_ptr_dtor(dz);
 	}
 }
 
@@ -381,15 +382,13 @@ static inline int php_protocolbuffers_process_varint(
 
 	if (scheme == NULL) {
 		if (container->process_unknown_fields > 0) {
-//			MAKE_STD_ZVAL(dz);
 			php_protocolbuffers_process_unknown_field(
 					INTERNAL_FUNCTION_PARAM_PASSTHRU, container, result, &dz,
 					tag, wiretype, value);
 		} else {
-			/* NOTE: skip unknown field. nothing to do. */
+			/* NOTE: skip unknown field. nothing to do.*/
 		}
 	} else {
-		//MAKE_STD_ZVAL(dz);
 		switch (scheme->type) {
 			case TYPE_BOOL:
 				ZVAL_BOOL(&dz, value);
@@ -423,10 +422,12 @@ static inline int php_protocolbuffers_process_varint(
 				zval_ptr_dtor(&dz);
 				return 0;
 		}
+
 		if (scheme->type != TYPE_BOOL) {
 			php_protocolbuffers_format_string(&dz, &__payload, use_string TSRMLS_CC);
 		}
 		php_protocolbuffers_decode_add_value_and_consider_repeated(container, scheme, result, &dz TSRMLS_CC);
+
 	}
 	return 1;
 }
