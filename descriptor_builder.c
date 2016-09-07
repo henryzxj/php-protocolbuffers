@@ -505,13 +505,13 @@ PHP_METHOD(protocolbuffers_descriptor_builder, getName)
 */
 PHP_METHOD(protocolbuffers_descriptor_builder, build)
 {
-	zval *result, *name, *fields = NULL;
+	zval result, *name, *fields = NULL;
 	php_protocolbuffers_descriptor *descriptor;
 
 //	MAKE_STD_ZVAL(result);
-	object_init_ex(result, php_protocol_buffers_descriptor_class_entry);
-	php_protocolbuffers_descriptor_properties_init(result TSRMLS_CC);
-	descriptor = PHP_PROTOCOLBUFFERS_GET_OBJECT(php_protocolbuffers_descriptor, result);
+	object_init_ex(&result, php_protocol_buffers_descriptor_class_entry);
+	php_protocolbuffers_descriptor_properties_init(&result TSRMLS_CC);
+	descriptor = PHP_PROTOCOLBUFFERS_GET_OBJECT(php_protocolbuffers_descriptor, &result);
 
 	name = pb_zend_read_property(php_protocol_buffers_descriptor_builder_class_entry, getThis(), ZEND_STRL("name"), 0 TSRMLS_CC);
 	if (Z_TYPE_P(name) == IS_STRING) {
@@ -524,15 +524,15 @@ PHP_METHOD(protocolbuffers_descriptor_builder, build)
 	}
 
 	fields = pb_zend_read_property(php_protocol_buffers_descriptor_builder_class_entry, getThis(), ZEND_STRL("fields"), 0 TSRMLS_CC);
-	if (!php_protocolbuffers_build_fields(fields, descriptor, result TSRMLS_CC)) {
-		zval_ptr_dtor(result);
+	if (!php_protocolbuffers_build_fields(fields, descriptor, &result TSRMLS_CC)) {
+		zval_ptr_dtor(&result);
 		RETURN_NULL();
 	}
 	php_protocolbuffers_build_options(getThis(), descriptor TSRMLS_CC);
 	php_protocolbuffers_build_extension_ranges(getThis(), descriptor TSRMLS_CC);
-	php_protocolbuffers_build_field_descriptor(descriptor, result TSRMLS_CC);
+	php_protocolbuffers_build_field_descriptor(descriptor, &result TSRMLS_CC);
 
-	RETURN_ZVAL(result, 0, 1);
+	RETURN_ZVAL(&result, 0, 1);
 }
 /* }}} */
 

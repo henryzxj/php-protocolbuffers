@@ -56,9 +56,9 @@ int php_protocolbuffers_encode(INTERNAL_FUNCTION_PARAMETERS, zend_class_entry *c
 
 int php_protocolbuffers_decode(INTERNAL_FUNCTION_PARAMETERS, const char *data,long data_len, zend_string *klass);
 
-void php_protocolbuffers_process_unknown_field(INTERNAL_FUNCTION_PARAMETERS, php_protocolbuffers_scheme_container *container, HashTable *hresult, zval *dz, int tag, int wiretype, int64_t value);
+void php_protocolbuffers_process_unknown_field(INTERNAL_FUNCTION_PARAMETERS, php_protocolbuffers_scheme_container *container, zval *result, zval *dz, int tag, int wiretype, int64_t value);
 
-void php_protocolbuffers_process_unknown_field_bytes(INTERNAL_FUNCTION_PARAMETERS, php_protocolbuffers_scheme_container *container, HashTable *hresult, int tag, int wiretype, uint8_t *bytes, int length);
+void php_protocolbuffers_process_unknown_field_bytes(INTERNAL_FUNCTION_PARAMETERS, php_protocolbuffers_scheme_container *container, zval *result, int tag, int wiretype, uint8_t *bytes, int length);
 
 int php_protocolbuffers_properties_init(zval *object, zend_class_entry *ce TSRMLS_DC);
 

@@ -89,7 +89,7 @@ static void php_protocolbuffers_descriptor_free_storage(zend_object *object TSRM
 	if (intern->container != NULL && intern->free_container <= 1) {
 		int i;
 
-		for (i = 0; i < (intern->container)->size; i++) {
+		for (i = 0; i < intern->container->size; i++) {
 			if ((intern->container)->scheme[i].original_name_key != NULL) {
 //				efree((intern->container)->scheme[i].original_name);
 				zend_string_release((intern->container)->scheme[i].original_name_key);

@@ -317,7 +317,7 @@ static inline php_protocolbuffers_scheme *php_protocolbuffers_search_scheme_by_t
 	return NULL;
 }
 
-static inline void php_protocolbuffers_decode_add_value_and_consider_repeated(php_protocolbuffers_scheme_container *container, php_protocolbuffers_scheme *s, HashTable *hresult, zval *dz TSRMLS_DC)
+static inline void php_protocolbuffers_decode_add_value_and_consider_repeated(php_protocolbuffers_scheme_container *container, php_protocolbuffers_scheme *s, zval *result, zval *dz TSRMLS_DC)
 {
 //	char *name;
 //	int name_len;
@@ -327,36 +327,28 @@ static inline void php_protocolbuffers_decode_add_value_and_consider_repeated(ph
 //		name = s->mangled_name;
 //		name_len = s->mangled_name_len;
 //		hash = s->mangled_name_h;
-		name_key = s->mangled_name_key;
+//		name_key = s->mangled_name_key;
+		name_key = s->name_key;
 	} else {
 //		name = s->name;
 //		name_len = s->name_len;
 //		hash = s->name_h;
 		name_key = s->name_key;
 	}
-
+	HashTable *hresult = Z_OBJPROP_P(result);
+	zend_class_entry *result_ce = Z_OBJCE_P(result);
 	if (s->repeated) {
 		if (!zend_hash_exists(hresult,name_key)) {
-			zval *arr;
-
-			//MAKE_STD_ZVAL(arr);目前不知道怎么处理
-			array_init(arr);
-
-			zend_hash_next_index_insert(Z_ARRVAL_P(arr), dz);
-			if (Z_REFCOUNTED_P(dz)) {
-//				Z_ADDREF_P(dz);
-				Z_ADDREF_P(dz);
-			}
-
+			zval arr;
+			array_init(&arr);
+			zend_hash_next_index_insert(Z_ARRVAL(arr), dz);
+			Z_TRY_ADDREF_P(dz);
 //			zend_hash_str_update(hresult,name,name_len,arr);
-			zend_hash_update(hresult,name_key,arr);
+			//zend_hash_update(hresult,name_key,&arr);
+			zend_update_property(result_ce,result,ZSTR_VAL(name_key),ZSTR_LEN(name_key),&arr);
 			//zend_hash_quick_update(hresult, name, name_len, hash, (void **)&arr, sizeof(arr), NULL);
-			if (Z_REFCOUNTED_P(arr)) {
-				//Z_ADDREF_P(arr);
-				Z_ADDREF_P(arr);
-			}
-//			zval_ptr_dtor(&arr);
-			zval_ptr_dtor(arr);
+			Z_TRY_ADDREF(arr);//? no ideas
+			zval_ptr_dtor(&arr);
 		} else {
 			zval *arr2;
 			if ((arr2=zend_hash_find(hresult, name_key)) != NULL) {
@@ -372,15 +364,17 @@ static inline void php_protocolbuffers_decode_add_value_and_consider_repeated(ph
 		}
 	} else {
 		//Z_ADDREF_P(dz);
+		Z_TRY_ADDREF_P(dz);
 //		zend_hash_quick_update(hresult, name, name_len, hash, (void **)&dz, sizeof(dz), NULL);
-		zend_hash_update(hresult,name_key,dz);
+		//zend_hash_update(hresult,name_key,dz);
+		zend_update_property(result_ce,result,ZSTR_VAL(name_key),ZSTR_LEN(name_key),dz);
 	}
 }
 
 static inline int php_protocolbuffers_process_varint(
 		INTERNAL_FUNCTION_PARAMETERS, int wiretype, int tag,
 		php_protocolbuffers_scheme_container *container,
-		php_protocolbuffers_scheme *scheme, uint64_t value, HashTable *hresult,
+		php_protocolbuffers_scheme *scheme, uint64_t value, zval *result,
 		int use_string) {
 	pbf __payload = { 0 };
 	zval dz;
@@ -389,7 +383,7 @@ static inline int php_protocolbuffers_process_varint(
 		if (container->process_unknown_fields > 0) {
 //			MAKE_STD_ZVAL(dz);
 			php_protocolbuffers_process_unknown_field(
-					INTERNAL_FUNCTION_PARAM_PASSTHRU, container, hresult, &dz,
+					INTERNAL_FUNCTION_PARAM_PASSTHRU, container, result, &dz,
 					tag, wiretype, value);
 		} else {
 			/* NOTE: skip unknown field. nothing to do. */
@@ -432,7 +426,7 @@ static inline int php_protocolbuffers_process_varint(
 		if (scheme->type != TYPE_BOOL) {
 			php_protocolbuffers_format_string(&dz, &__payload, use_string TSRMLS_CC);
 		}
-		php_protocolbuffers_decode_add_value_and_consider_repeated(container, scheme, hresult, &dz TSRMLS_CC);
+		php_protocolbuffers_decode_add_value_and_consider_repeated(container, scheme, result, &dz TSRMLS_CC);
 	}
 	return 1;
 }
@@ -441,14 +435,15 @@ static inline int php_protocolbuffers_process_fixed64(
 		INTERNAL_FUNCTION_PARAMETERS, int wiretype, int tag,
 		php_protocolbuffers_scheme_container *container,
 		php_protocolbuffers_scheme *scheme, const char *data,
-		HashTable *hresult, int use_string) {
+		zval *result, int use_string) {
 	pbf __payload = { 0 };
-	zval *dz = NULL;
+	zval *dz1 = NULL;
+	zval dzz;
 
 	if (scheme == NULL) {
 		if (container->process_unknown_fields > 0) {
 			php_protocolbuffers_process_unknown_field_bytes(
-					INTERNAL_FUNCTION_PARAM_PASSTHRU, container, hresult, tag,
+					INTERNAL_FUNCTION_PARAM_PASSTHRU, container, result, tag,
 					wiretype, (uint8_t *) data, 8);
 		} else {
 			/* skip unknown field */
@@ -466,7 +461,7 @@ static inline int php_protocolbuffers_process_fixed64(
 
 			__payload.type = TYPE_DOUBLE;
 			__payload.value.d = d;
-php_protocolbuffers_format_string		(dz, &__payload, use_string TSRMLS_CC);
+php_protocolbuffers_format_string		(&dzz, &__payload, use_string TSRMLS_CC);
 	}
 	break;
 	case TYPE_FIXED64:
@@ -475,7 +470,7 @@ php_protocolbuffers_format_string		(dz, &__payload, use_string TSRMLS_CC);
 
 		memcpy(&v, data, 8);
 		__payload.type = TYPE_UINT64;__payload.value.uint64 = v;
-		php_protocolbuffers_format_string(dz, &__payload, use_string TSRMLS_CC);
+		php_protocolbuffers_format_string(&dzz, &__payload, use_string TSRMLS_CC);
 	}
 	break;
 	case TYPE_SFIXED64:
@@ -484,14 +479,14 @@ php_protocolbuffers_format_string		(dz, &__payload, use_string TSRMLS_CC);
 		memcpy(&l, data, 8);
 
 		__payload.type = TYPE_INT64;__payload.value.int64 = l;
-		php_protocolbuffers_format_string(dz, &__payload, use_string TSRMLS_CC);
+		php_protocolbuffers_format_string(&dzz, &__payload, use_string TSRMLS_CC);
 	}
 	break;
 	default:
-	zval_ptr_dtor(dz);
+	zval_ptr_dtor(&dzz);
 	return 0;
 }
-php_protocolbuffers_decode_add_value_and_consider_repeated(container, scheme, hresult, dz TSRMLS_CC);
+php_protocolbuffers_decode_add_value_and_consider_repeated(container, scheme, result, &dzz TSRMLS_CC);
 }
 
 return 1;
@@ -501,13 +496,13 @@ static inline int php_protocolbuffers_process_fixed32(
 		INTERNAL_FUNCTION_PARAMETERS, int wiretype, int tag,
 		php_protocolbuffers_scheme_container *container,
 		php_protocolbuffers_scheme *scheme, const char *data,
-		HashTable *hresult, int use_string) {
+		zval *result, int use_string) {
 	pbf __payload = { 0 };
 	zval dz;
 	if (scheme == NULL) {
 		if (container->process_unknown_fields > 0) {
 			php_protocolbuffers_process_unknown_field_bytes(
-					INTERNAL_FUNCTION_PARAM_PASSTHRU, container, hresult, tag,
+					INTERNAL_FUNCTION_PARAM_PASSTHRU, container, result, tag,
 					wiretype, (uint8_t*) data, 4);
 		} else {
 			/* skip unknown field */
@@ -545,7 +540,7 @@ static inline int php_protocolbuffers_process_fixed32(
 			return 0;
 		}
 php_protocolbuffers_format_string(&dz, &__payload, use_string TSRMLS_CC);
-	php_protocolbuffers_decode_add_value_and_consider_repeated(container, scheme, hresult, &dz TSRMLS_CC);
+	php_protocolbuffers_decode_add_value_and_consider_repeated(container, scheme, result, &dz TSRMLS_CC);
 }
 
 return 1;
