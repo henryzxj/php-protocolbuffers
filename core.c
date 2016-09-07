@@ -441,10 +441,7 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 					/* skip unknown field */
 				}
 			} else if (s->type == TYPE_STRING) {
-//				zend_string *data_str = zend_string_init(data,payload,0);
 				ZVAL_STRINGL(&dzz, (char*)data, payload);
-//				ZVAL_STR(&dzz,data_str);
-//				zend_string_release(data_str);
 				php_protocolbuffers_decode_add_value_and_consider_repeated(container, s, result, &dzz TSRMLS_CC);
 
 			} else if (s->type == TYPE_BYTES) {
@@ -453,7 +450,6 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 				php_protocolbuffers_decode_add_value_and_consider_repeated(container, s, result, &dzz TSRMLS_CC);
 			} else if (s->type == TYPE_MESSAGE) {
 				const char *n_buffer_end = data + payload;
-				zval *z_obj1 = NULL;
 				zval zz_obj;
 				php_protocolbuffers_scheme_container *c_container = NULL;
 //				char *name1 = {0};
@@ -482,7 +478,7 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 					if ((tt=zend_hash_find(hresult, name_key)) != NULL) {
 //						zz_obj = tt;
 						ZVAL_COPY(&zz_obj,tt);
-						Z_TRY_ADDREF(zz_obj);
+						//Z_TRY_ADDREF(zz_obj);
 					} else {
 						object_init_ex(&zz_obj, s->ce);
 						php_protocolbuffers_properties_init(&zz_obj, s->ce TSRMLS_CC);
@@ -500,7 +496,7 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 					}
 				}
 
-				php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAM_PASSTHRU, data, n_buffer_end, c_container, PBG(native_scalars), &zz_obj);
+				//php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAM_PASSTHRU, data, n_buffer_end, c_container, PBG(native_scalars), &zz_obj);
 
 				if (c_container->use_wakeup_and_sleep > 0) {
 					php_protocolbuffers_execute_wakeup(&zz_obj, c_container TSRMLS_CC);
@@ -512,24 +508,23 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 
 						array_init(&arr);
 
-						Z_TRY_ADDREF(zz_obj);
+//						Z_TRY_ADDREF(zz_obj);
 						//Z_ADDREF_P(&zz_obj);
 						zend_hash_next_index_insert(Z_ARRVAL(arr), &zz_obj);
-						Z_TRY_ADDREF(arr);
+//						Z_TRY_ADDREF(arr);
 						//Z_ADDREF_P(&arr);
 						zend_update_property(result_ce,result,ZSTR_VAL(name_key),ZSTR_LEN(name_key),&arr);
-						zval_ptr_dtor(&arr);
+						zval_dtor(&arr);
 					} else {
 						zval *arr2 = NULL;
 
 						if ((arr2=zend_hash_find(hresult, name_key)) != NULL) {
-							Z_ADDREF_P(&zz_obj);
+							//Z_ADDREF_P(&zz_obj);
 							zend_hash_next_index_insert(Z_ARRVAL_P(arr2), &zz_obj);
 						}
 					}
 				} else {
 					zend_update_property(result_ce,result,ZSTR_VAL(name_key),ZSTR_LEN(name_key),&zz_obj);
-//					Z_ADDREF_P(&zz_obj);
 				}
 
 				zval_ptr_dtor(&zz_obj);
@@ -721,6 +716,7 @@ const char* php_protocolbuffers_decode_message(INTERNAL_FUNCTION_PARAMETERS, con
 		break;
 		}
 		prior_scheme = s;
+		php_var_dump(result,1);
 	}
 
 	return data;
